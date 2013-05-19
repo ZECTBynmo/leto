@@ -1,0 +1,35 @@
+{
+  "name": "nptm",
+  "version": "0.0.1",
+  "author": "Mike Vegeto <michael.vegeto@gmail.com>",
+  "description": "Node Project Template Manager - A registry for template and boilerplage projects",
+  "main": "./nptm",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "keywords": [
+    "template",
+    "project",
+    "boilerplate",
+    "spawn",
+    "efficiency",
+    "tools"
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "http://raw.github.com/ZECTBynmo/nptm/master/LICENSE"
+    }
+  ],
+  "bin": {"spawn": "spawn.js"},
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/ZECTBynmo/nptm.git"
+  },
+  "dependencies": {
+    "ares": "0.0.6",
+    "maker": "0.0.4",
+    "mkdirp": "~0.3.5",
+    "needle": "~0.4.9"
+  }
+}

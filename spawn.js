@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-var spawner = new require("./spawner").spawner(),
-	needle = require("needle");
+var Spawner = require("./spawner").spawner,
+	needle = require("needle"),
+	spawner = new Spawner();
 
 // Enum our arg indices for code clarity
 var ARG_PROCESS = 0,	// node
@@ -40,18 +41,31 @@ function publishTemplate( source ) {
 
 	template.setup = setupJSON;
 
-	needle.post( "http://localhost:3000/templates", template, function(){} );
+	console.log( template );
+
+	needle.post( "http://templateregistry.herokuapp.com/templates", template, function(){} );
 }
 
 
 //////////////////////////////////////////////////////////////////////////
-// Spawns a project
-function spawnProject( contents ) {
+// Spawns a project from contents we retrieve from the database
+function spawnProject( contentsHash ) {
 	console.log( "Spawning new project" );
 
-	contents = JSON.parse( contents );
+	var dest = process.cwd();
 
-	spawner.spawn( options, contents, function() {
-		console.log( "Finished spawning" );
+	var options = {
+		dest: dest
+	};
+
+	needle.get( "http://templateregistry.herokuapp.com/contents/" + contentsHash, {}, function( error, response, body ) {
+		if( body.setup === undefined ) 
+			return;
+
+		console.log( body.setup );
+
+		spawner.spawn( dest, body.setup, options, body.contents, function() {
+			console.log( "Finished spawning" );
+		});
 	});
 }

@@ -6,7 +6,9 @@
 /* ----------------------------------------------------------------------
 													Object Structures
 -------------------------------------------------------------------------
-	
+	var options = {
+		dest: "...path where we'll be dumping files...",
+	}
 */
 //////////////////////////////////////////////////////////////////////////
 // Requires
@@ -19,7 +21,7 @@ var ares = require("ares").ares,
 //////////////////////////////////////////////////////////////////////////
 // Namespace (lol)
 var SHOW_DEBUG_PRINTS = true;
-var log = function( a ) { if(SHOW_DEBUG_PRINTS) console.log(a); };				// A log function we can turn off
+var log = function( a ) { if(SHOW_DEBUG_PRINTS) console.log(a); };	// A log function we can turn off
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -32,23 +34,31 @@ function spawner() {
 
 //////////////////////////////////////////////////////////////////////////
 // Spawns a project
-spawner.prototype.spawn = function( options, contents, callback ) {
+spawner.prototype.spawn = function( dest, template, options, contents, callback ) {
 	var _this = this;
 
-	options.tempRepoDest = __dirname + "/TempClones/";
+	template.tempRepoDest = options.dest + "/_Temp/";
 
 	async.series([
 		function( cb ) {
 			// Clone the repo onto the local computer
-			gitOps.cloneRepo( options, cb );
+			gitOps.cloneRepo( template, cb );
 		},
 		function( cb ) {
-			var source = options.tempRepoDest + "/" + options.github.repo;
+			var source = template.tempRepoDest + "/" + template.github.repo;
 
-			maker.makeTemplatesFromDir( source, options.dest, options.keywords, options.keywords, options.extensions, contents, cb );
-		},
+			// Construct our filepath map by grabbing the end values for each 
+			// template from the contents we're given
+			var filePathMap = {};
+			for( var iKey in template.keywords ) {
+				var keyword = template.keywords[iKey];
+				filePathMap[iKey] = contents[keyword];
+			}
 
-	// Finished callback
+			maker.makeTemplatesFromDir( source, options.dest + "/", template.keywords, filePathMap, template.extensions, contents, cb );
+		}
+
+	// We're finished, call back!
 	], function() {
 		callback();
 	});

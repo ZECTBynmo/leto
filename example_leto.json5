@@ -1,0 +1,61 @@
+////////////////////////////////////////////////////////////////////////////////
+// BaseVST Leto template defs
+{   "image": "http://www.sxc.hu/pic/m/g/ga/gauz/1422319_mixing_desk.jpg", 
+    "version": "x.x.x",                                                   
+    "github": {                                                           
+        "user": "ZECTBynmo",                                              
+        "repo": "defaultTemplate"
+    }, 
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // Setup procedure
+    "procedure": [
+
+        // ******************************
+        // Step 1 - Check for deps
+        // ******************************
+        {   "title": "Checking for VST sources",
+            "type": "check",                    // Check and see whether some stuff exists
+            "folders": [                        
+                "vstsdk2.4",                    // Check for the VST SDK sources
+            ],
+        }, // end check deps
+
+
+        // ******************************
+        // Step 2 - Move VST Sources
+        // ******************************
+        {   "title": "Move VST SDK sources into place",
+            "type": "move",                     // Move some files
+            "plan": "./movingPlan",             // Our moving plan (see https://github.com/ZECTBynmo/mover)
+        }, // end move VST sources
+
+
+        // ******************************
+        // Step 3 - Search and Replace
+        // ******************************
+        {   "title": "Change names and paths",
+            "type": "search",                   // Search through the folder and find instances of keywords
+                                                // (ex: project name)
+            "keywords": {       
+                "MyProject": "projectName",     // The (case sensitive) strings we're searching for, and
+            },                                  // the title of the value it represents
+                
+            "extensions": [                     // We'll only open files with these extensions (we search
+                ".js",                          // through all files if this is omitted)
+                ".md",
+                ".json"
+            ]
+        }, // end search and replace
+
+
+        // ******************************
+        // Step 4 - Run a script
+        // ******************************
+        {   "title": "Generate project files",
+            "type": "execute",
+            "command": "nonnode-gyp configure"
+        }, // end search and replace
+
+    ] // end setup procedure 
+}

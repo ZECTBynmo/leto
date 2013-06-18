@@ -1,0 +1,15 @@
+{   
+    "procedure": [
+        {
+           "title": "Template a file!",
+            "type": "template", 
+            "sourcedir": "./test/test_templates",
+            "templates": [
+            	{ 
+            		"name": "test1", 
+            		"dest": "test/~~testFolder~~/templatedScript.js"
+            	}
+            ]
+        }
+    ]
+}

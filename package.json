@@ -1,9 +1,9 @@
 {
-  "name": "nptm",
+  "name": "leto",
   "version": "0.0.1",
   "author": "Mike Vegeto <michael.vegeto@gmail.com>",
   "description": "Node Project Template Manager - A registry for template and boilerplage projects",
-  "main": "./nptm",
+  "main": "./leto",
   "engines": {
     "node": ">=0.8.0"
   },
@@ -11,25 +11,28 @@
     "template",
     "project",
     "boilerplate",
-    "spawn",
+    "leto",
     "efficiency",
     "tools"
   ],
   "licenses": [
     {
       "type": "MIT",
-      "url": "http://raw.github.com/ZECTBynmo/nptm/master/LICENSE"
+      "url": "http://raw.github.com/ZECTBynmo/leto/master/LICENSE"
     }
   ],
-  "bin": {"spawn": "spawn.js"},
+  "bin": {
+    "leto": "leto.js"
+  },
   "repository": {
     "type": "git",
-    "url": "http://github.com/ZECTBynmo/nptm.git"
+    "url": "http://github.com/ZECTBynmo/leto.git"
   },
   "dependencies": {
     "ares": "0.0.6",
     "maker": "0.0.4",
     "mkdirp": "~0.3.5",
-    "needle": "~0.4.9"
+    "needle": "~0.4.9",
+    "mover": "0.0.9"
   }
 }

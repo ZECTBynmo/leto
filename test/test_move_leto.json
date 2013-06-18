@@ -1,0 +1,9 @@
+{   
+    "procedure": [
+        {
+           "title": "Move stuff!",
+            "type": "move", 
+            "plan": "test/test_moving_plan.json"
+        }
+    ]
+}

@@ -1,0 +1,9 @@
+{   
+    "procedure": [
+        {
+           "title": "Move stuff!",
+            "type": "execute", 
+            "command": "echo poop >> test/_TEST/test.txt"
+        }
+    ]
+}

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 var Spawner = require("./spawner").spawner,
 	needle = require("needle"),
-	spawner = new Spawner();
+	spawner = new Spawner(),
+	urls = require("./urls.json");
 
 // Enum our arg indices for code clarity
 var ARG_PROCESS = 0,	// node
@@ -15,7 +16,7 @@ if( process.argv.length < 3 ) {
 }
 
 switch( process.argv[ARG_ARG1] ) {
-case "new":
+case "spawn":
 	spawnProject( process.argv[ARG_ARG2] );
   	break;
 
@@ -43,7 +44,7 @@ function publishTemplate( source ) {
 
 	console.log( template );
 
-	needle.post( "http://templateregistry.herokuapp.com/templates", template, function(){} );
+	needle.post( urls.REMOTE_URL + "/templates", template, function(){} );
 }
 
 
@@ -58,7 +59,7 @@ function spawnProject( contentsHash ) {
 		dest: dest
 	};
 
-	needle.get( "http://templateregistry.herokuapp.com/contents/" + contentsHash, {}, function( error, response, body ) {
+	needle.get( urls.REMOTE_URL + "/contents" + contentsHash, {}, function( error, response, body ) {
 		if( body.setup === undefined ) 
 			return;
 

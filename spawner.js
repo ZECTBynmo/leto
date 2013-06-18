@@ -15,7 +15,9 @@
 var ares = require("ares").ares,
 	async = require("async"),
 	maker = require("maker").createMaker(),
-	gitOps = require("./src/gitOperations");
+	mover = require("mover").createMover(),
+	gitOps = require("./src/gitOperations"),
+	ares = require("ares").ares;
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -28,40 +30,127 @@ var log = function( a ) { if(SHOW_DEBUG_PRINTS) console.log(a); };	// A log func
 // Constructor
 function spawner() {	
 	var _this = this;	
+
+	this.tempRepoDest = "/_leto_temp/";
 	
 } // end spawner()
 
 
 //////////////////////////////////////////////////////////////////////////
 // Spawns a project
-spawner.prototype.spawn = function( dest, template, options, contents, callback ) {
+spawner.prototype.spawn = function( dest, template, options, contents, shouldCloneRepo, callback ) {
 	var _this = this;
 
-	template.tempRepoDest = options.dest + "/_Temp/";
+	// Make shouldCloneRepo optional
+	if( callback === undefined ) {
+		callback = shouldCloneRepo;
+		shouldCloneRepo = false;
+	}
 
-	async.series([
-		function( cb ) {
-			// Clone the repo onto the local computer
-			gitOps.cloneRepo( template, cb );
-		},
-		function( cb ) {
-			var source = template.tempRepoDest + "/" + template.github.repo;
+	template.tempRepoDest = dest + this.tempRepoDest;
+
+	var asyncCallQueue = [];
+
+	var getBatchReplace = function( step ) {
+		return function( cb ) {
+			var source = step.sourcedir;
 
 			// Construct our filepath map by grabbing the end values for each 
 			// template from the contents we're given
 			var filePathMap = {};
-			for( var iKey in template.keywords ) {
-				var keyword = template.keywords[iKey];
+			for( var iKey in step.keywords ) {
+				var keyword = step.keywords[iKey];
 				filePathMap[iKey] = contents[keyword];
 			}
 
-			maker.makeTemplatesFromDir( source, options.dest + "/", template.keywords, filePathMap, template.extensions, contents, cb );
+			console.log( template );
+			maker.makeTemplatesFromDir( __dirname + "/" + source, dest + "/", step.keywords, filePathMap, step.extensions, contents, cb );
+		}
+	}
+
+	var getTemplateFiles = function( step ) {
+		return function( cb ) { 
+			maker.loadTemplateDir( step.sourcedir, function() {
+				var makeFileCallQueue = [];
+
+				var templateFiles = [];
+
+				for( var iTemplate=0; iTemplate<step.templates.length; ++iTemplate ) {
+					// Preserve this template for closure
+					var thisTemplate = step.templates[iTemplate];
+
+					// Templatize the path
+					thisTemplate.dest = maker.renderTemplateToString( maker.template(thisTemplate.dest, contents) );
+
+					var thisTemplateFileFn = function( callb ) {						
+						var templateObj = maker.fillTemplate( thisTemplate.name, contents );
+						templateFiles.push( templateObj );
+						maker.makeFile( thisTemplate.dest, templateFiles, callb );
+					}
+
+					makeFileCallQueue.push( thisTemplateFileFn );
+				}
+
+				// Run our async call queue
+				async.series( makeFileCallQueue, cb );
+			});
+		}
+	}
+
+	var getMoveFiles = function( step ) {
+		return function( cb ) {
+			var movingPlan = require( __dirname + "/" + step.plan );
+
+			mover.setPlan( movingPlan );
+			mover.setDest( dest );
+			mover.move( cb );
+		}
+	}
+
+	var getExecuteCommand = function( step ) {
+		return function( cb ) {
+			ares( step.command, true, cb );
+		}
+	}
+
+	function runSpawnSeries() {
+
+		// Grab our setup procedure from the recently cloned repo
+		var procedure = template.procedure;
+
+		for( var iStep=0; iStep<procedure.length; ++iStep ) {
+			switch( procedure[iStep].type ) {
+			case "replace":
+				asyncCallQueue.push( getBatchReplace(procedure[iStep]) );
+			  	break;
+		  	case "template":
+				asyncCallQueue.push( getTemplateFiles(procedure[iStep]) );
+			  	break;
+		  	case "move":
+				asyncCallQueue.push( getMoveFiles(procedure[iStep]) );
+			  	break;
+		  	case "execute":
+				asyncCallQueue.push( getExecuteCommand(procedure[iStep]) );
+			  	break;
+
+			default:
+			  	console.log( "Step type " + procedure[iStep] + " not recognized" );
+			}
 		}
 
-	// We're finished, call back!
-	], function() {
-		callback();
-	});
+		// Run our async call queue
+		async.series( asyncCallQueue, function() {
+			callback();
+		});
+	}
+
+	if( shouldCloneRepo ) {
+		gitOps.cloneRepo( template, function() {
+			runSpawnSeries();
+		});	
+	} else {
+		runSpawnSeries();
+	}
 	
 } // end spawn()
 

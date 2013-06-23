@@ -48,26 +48,29 @@ function publishTemplate( source ) {
 	var template = {},
 		setupJSON = require( source + "/leto.json5" );
 
-	try {
-		var templateParams = require( source + "/leto_params.json" );
-	} catch( err ) {
-		console.log( "Couldn't find " + source + "/leto_params.json, run 'leto crawl' on the project to generate it" );
-		return;
-	}
+	crawler.crawl( source, setupJSON, function() {
+		try {
+			var templateParams = require( source + "/leto_params.json" );
+		} catch( err ) {
+			console.log( "Couldn't find " + source + "/leto_params.json, run 'leto crawl' on the project to generate it" );
+			return;
+		}
 
-	template = setupJSON;
-	template.__params = templateParams;
+		template = setupJSON;
+		template.__params = templateParams;
+		template.__source = source;
 
-	console.log( template );
+		console.log( template );
 
-	needle.post( urls.LOCAL_URL + "/templates", template, function(error){if(error!=undefined)console.log(error);} );
+		needle.post( urls.LOCAL_URL + "/templates", template, function(error){if(error!=undefined)console.log(error);} );
+	});
 }
 
 
 //////////////////////////////////////////////////////////////////////////
 // Spawns a project from contents we retrieve from the database
 function spawnProject( contentsHash ) {
-	console.log( "Spawning new project" );
+	console.log( "Spawning project" );
 
 	var dest = process.cwd();
 
@@ -75,13 +78,11 @@ function spawnProject( contentsHash ) {
 		dest: dest
 	};
 
-	needle.get( urls.REMOTE_URL + "/contents" + contentsHash, {}, function( error, response, body ) {
-		if( body.setup === undefined ) 
+	needle.get( urls.LOCAL_URL + "/contents/" + contentsHash, {}, function( error, response, body ) {
+		if( body.template === undefined ) 
 			return;
 
-		console.log( body.setup );
-
-		spawner.spawn( dest, body.setup, options, body.contents, function() {
+		spawner.spawn( dest, body.template, options, body.contents, function() {
 			console.log( "Finished spawning" );
 		});
 	});

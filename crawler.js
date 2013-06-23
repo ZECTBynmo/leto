@@ -81,10 +81,13 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 			}
 		}
 
+		var movingPlanPath = source + "/" + step.plan;
+
 		try {
-			getFolderParamsRecursive( require(step.plan) );
+			getFolderParamsRecursive( require(movingPlanPath) );
 		} catch( err ) {
-			log( "Crawl failed: Couldn't load your moving plan: " + step.plan );
+			log( "Crawl failed: Couldn't load your moving plan: " + movingPlanPath );
+			log( err );
 			return;
 		}
 	}

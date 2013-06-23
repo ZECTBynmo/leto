@@ -53,7 +53,8 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getBatchReplace = function( step ) {
 		return function( cb ) {
-			var source = step.sourcedir;
+			console.log( "replace" );
+			var source = step.sourcedir || options.source || leto_setup.__source || process.cwd();
 
 			// Construct our filepath map by grabbing the end values for each 
 			// template from the contents we're given
@@ -63,16 +64,16 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 				filePathMap[iKey] = contents[keyword];
 			}
 
-			maker.makeTemplatesFromDir( __dirname + "/" + source, dest + "/", step.keywords, filePathMap, step.extensions, contents, cb );
+			maker.makeTemplatesFromDir( source, dest + "/", step.keywords, filePathMap, step.extensions, contents, cb );
 		}
 	}
 
 	var getTemplateFiles = function( step ) {
 		return function( cb ) { 
+			console.log( "template" );
 			maker.loadTemplateDir( step.sourcedir, function() {
-				var makeFileCallQueue = [];
-
-				var templateFiles = [];
+				var makeFileCallQueue = [],
+					templateFiles = [];
 
 				for( var iTemplate=0; iTemplate<step.templates.length; ++iTemplate ) {
 					// Preserve this template for closure
@@ -98,16 +99,28 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getMoveFiles = function( step ) {
 		return function( cb ) {
-			var movingPlan = require( __dirname + "/" + step.plan );
+			console.log( "move" );
+			var movingPlanPath = leto_setup.__source + "/" + step.plan;
+			console.log( movingPlanPath );
+
+			try {
+				var movingPlan = require( movingPlanPath );
+			} catch( err ) {
+				console.log( "Failed to load moving plan " + movingPlanPath );
+				cb( err );
+			}
+			
 
 			mover.setPlan( movingPlan );
 			mover.setDest( dest );
+			mover.setSrc( leto_setup.__source );
 			mover.move( cb );
 		}
 	}
 
 	var getExecuteCommand = function( step ) {
 		return function( cb ) {
+			console.log( "execute" );
 			ares( step.command, true, cb );
 		}
 	}

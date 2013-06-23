@@ -38,7 +38,7 @@ function spawner() {
 
 //////////////////////////////////////////////////////////////////////////
 // Spawns a project
-spawner.prototype.spawn = function( dest, template, options, contents, shouldCloneRepo, callback ) {
+spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldCloneRepo, callback ) {
 	var _this = this;
 
 	// Make shouldCloneRepo optional
@@ -47,7 +47,7 @@ spawner.prototype.spawn = function( dest, template, options, contents, shouldClo
 		shouldCloneRepo = false;
 	}
 
-	template.tempRepoDest = dest + this.tempRepoDest;
+	leto_setup.tempRepoDest = dest + this.tempRepoDest;
 
 	var asyncCallQueue = [];
 
@@ -63,7 +63,6 @@ spawner.prototype.spawn = function( dest, template, options, contents, shouldClo
 				filePathMap[iKey] = contents[keyword];
 			}
 
-			console.log( template );
 			maker.makeTemplatesFromDir( __dirname + "/" + source, dest + "/", step.keywords, filePathMap, step.extensions, contents, cb );
 		}
 	}
@@ -116,7 +115,7 @@ spawner.prototype.spawn = function( dest, template, options, contents, shouldClo
 	function runSpawnSeries() {
 
 		// Grab our setup procedure from the recently cloned repo
-		var procedure = template.procedure;
+		var procedure = leto_setup.procedure;
 
 		for( var iStep=0; iStep<procedure.length; ++iStep ) {
 			switch( procedure[iStep].type ) {
@@ -134,7 +133,7 @@ spawner.prototype.spawn = function( dest, template, options, contents, shouldClo
 			  	break;
 
 			default:
-			  	console.log( "Step type " + procedure[iStep] + " not recognized" );
+			  	console.log( "Step type " + procedure[iStep].type + " not recognized" );
 			}
 		}
 
@@ -145,7 +144,7 @@ spawner.prototype.spawn = function( dest, template, options, contents, shouldClo
 	}
 
 	if( shouldCloneRepo ) {
-		gitOps.cloneRepo( template, function() {
+		gitOps.cloneRepo( leto_setup, function() {
 			runSpawnSeries();
 		});	
 	} else {

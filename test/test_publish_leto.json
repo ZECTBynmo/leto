@@ -1,0 +1,32 @@
+{     
+    "procedure": [
+        {
+            "title": "Execute a command!",
+            "type": "execute", 
+            "command": "echo poop >> test/_TEST/test.txt"
+        },
+        {
+           "title": "Template a file!",
+            "type": "template", 
+            "sourcedir": "./test/test_templates",
+            "templates": [
+                { 
+                    "name": "test1", 
+                    "dest": "test/~~templateDestParam~~/templatedScript.js"
+                }
+            ]
+        },
+        {
+           "title": "Batch replace stuff!",
+            "type": "replace",
+            "sourcedir": "test/test_sources",
+            "keywords": {
+                "SomeRandomName": "replaceKeyword1",
+                "AnotherRandomName": "replaceKeyword2"
+            },
+            "extensions": [
+                ".js"
+            ]
+        }
+    ]
+}

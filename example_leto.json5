@@ -12,18 +12,7 @@
     "procedure": [
 
         // ******************************
-        // Step 1 - Check for deps
-        // ******************************
-        {   "title": "Checking for VST sources",
-            "type": "check",                    // Check and see whether some stuff exists
-            "folders": [                        
-                "vstsdk2.4",                    // Check for the VST SDK sources
-            ],
-        }, // end check deps
-
-
-        // ******************************
-        // Step 2 - Move VST Sources
+        // Step 1 - Move VST Sources
         // ******************************
         {   "title": "Move VST SDK sources into place",
             "type": "move",                     // Move some files
@@ -32,10 +21,10 @@
 
 
         // ******************************
-        // Step 3 - Search and Replace
+        // Step 2 - Search and Replace
         // ******************************
         {   "title": "Change names and paths",
-            "type": "search",                   // Search through the folder and find instances of keywords
+            "type": "replace",                  // Search through the folder and find instances of keywords
                                                 // (ex: project name)
             "keywords": {       
                 "MyProject": "projectName",     // The (case sensitive) strings we're searching for, and
@@ -50,7 +39,7 @@
 
 
         // ******************************
-        // Step 4 - Run a script
+        // Step 3 - Run a script
         // ******************************
         {   "title": "Generate project files",
             "type": "execute",

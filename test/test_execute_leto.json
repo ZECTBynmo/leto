@@ -1,7 +1,7 @@
 {   
     "procedure": [
         {
-           "title": "Move stuff!",
+           "title": "Execute a command!",
             "type": "execute", 
             "command": "echo poop >> test/_TEST/test.txt"
         }

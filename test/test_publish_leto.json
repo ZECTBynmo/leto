@@ -8,7 +8,7 @@
         {
            "title": "Template a file!",
             "type": "template", 
-            "sourcedir": "./test/test_templates",
+            "sourcedir": "test_templates/",
             "templates": [
                 { 
                     "name": "test1", 

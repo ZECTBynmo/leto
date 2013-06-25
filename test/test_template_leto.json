@@ -3,7 +3,7 @@
         {
            "title": "Template a file!",
             "type": "template", 
-            "sourcedir": "./test/test_templates",
+            "sourcedir": "test/test_templates",
             "templates": [
             	{ 
             		"name": "test1", 

@@ -53,7 +53,6 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getBatchReplace = function( step ) {
 		return function( cb ) {
-			console.log( "replace" );
 			var source = step.sourcedir || options.source || leto_setup.__source || process.cwd();
 
 			// Construct our filepath map by grabbing the end values for each 
@@ -70,10 +69,8 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getTemplateFiles = function( step ) {
 		return function( cb ) { 
-			console.log( "template" );
-			maker.loadTemplateDir( step.sourcedir, function() {
-				var makeFileCallQueue = [],
-					templateFiles = [];
+			maker.loadTemplateDir( step.sourcedir, function( loadedTemplates ) {
+				var makeFileCallQueue = [];
 
 				for( var iTemplate=0; iTemplate<step.templates.length; ++iTemplate ) {
 					// Preserve this template for closure
@@ -82,9 +79,21 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 					// Templatize the path
 					thisTemplate.dest = maker.renderTemplateToString( maker.template(thisTemplate.dest, contents) );
 
-					var thisTemplateFileFn = function( callb ) {						
-						var templateObj = maker.fillTemplate( thisTemplate.name, contents );
+					var thisTemplateFileFn = function( callb ) {
+						// Retreive the empty template object
+						var templateObj = maker.getTemplate( thisTemplate.name ),
+							templateFiles = [];
+
+						if( templateObj === undefined ) {
+							console.log( "Error retrieving template " + thisTemplate.name );
+							cb( "Error retrieving template " + thisTemplate.name );
+						}
+
+						// Fill the template with our contents
+						templateObj = maker.fillTemplate( templateObj, contents );
 						templateFiles.push( templateObj );
+
+						// Write the file out to disk
 						maker.makeFile( thisTemplate.dest, templateFiles, callb );
 					}
 
@@ -99,9 +108,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getMoveFiles = function( step ) {
 		return function( cb ) {
-			console.log( "move" );
 			var movingPlanPath = leto_setup.__source + "/" + step.plan;
-			console.log( movingPlanPath );
 
 			try {
 				var movingPlan = require( movingPlanPath );
@@ -120,8 +127,21 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getExecuteCommand = function( step ) {
 		return function( cb ) {
-			console.log( "execute" );
+			// Change the current working directory if that setting is used
+			if( step.workingdir != undefined ) {
+				var oldCWD = process.cwd(),
+					isRelative = step.isRelative || true,
+					newCWD = isRelative ? leto_setup.__source + "/" + step.workingdir : step.workingdir;
+
+				process.chdir( newCWD );
+			}
+
 			ares( step.command, true, cb );
+
+			// Change the working directory back to what it was
+			if( step.workingdir != undefined ) {
+				process.chdir( oldCWD );
+			}
 		}
 	}
 

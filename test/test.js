@@ -10,8 +10,17 @@ var Spawner = require("../spawner").spawner,
 	test_publish_leto = require( __dirname + "/test_publish_leto.json" ),
 	test_template_leto = require( __dirname + "/test_template_leto.json" );
 
+// Set some fake sources for our letos, these would be set by the server otherwise
+test_move_leto.__source		 = process.cwd();
+test_replace_leto.__source 	 = process.cwd();
+test_execute_leto.__source   = process.cwd();
+test_publish_leto.__source   = process.cwd();
+test_template_leto.__source  = process.cwd();
+
+
 describe('spawner', function() {
 	describe('#spawn()', function() {
+
 		it('should move some files', function(done) {
 			spawner.spawn( __dirname, test_move_leto, {}, {}, function() {
 				// Make sure the file was moved
@@ -47,8 +56,6 @@ describe('spawner', function() {
 
 			spawner.spawn( __dirname+"/_TEST/", test_replace_leto, {}, contents, function() {
 				var MyGeneratedClass = require( __dirname + "/_TEST/TestSource" ).MyGeneratedClass;
-				
-				console.log( MyGeneratedClass );
 
 				var myObject = new MyGeneratedClass();
 
@@ -81,11 +88,12 @@ describe('crawler', function() {
 		crawler.crawl( __dirname, test_publish_leto, function() {
 
 			it('should create a leto_params.json file', function(done) {
+
 				// Make sure the file was moved
 				if( require(__dirname + "/leto_params.json") != undefined ) {
 				    done();
 				} else {
-					done( "Command not executed" );
+					done( "Can't load leto_params.json" );
 				}
 			});
 
@@ -95,7 +103,17 @@ describe('crawler', function() {
 				if( templateParams["templateDestParam"] != undefined ) {
 				    done();
 				} else {
-					done( "Params not properly setup" );
+					done( "Can't load params from 'template' destination paths" );
+				}
+			});
+
+			it('should load params from "template" steps template files', function(done) {
+				var templateParams = require(__dirname + "/leto_params.json");
+
+				if( templateParams.contents != undefined ) {
+				    done();
+				} else {
+					done( "Can't load params from template file contents" );
 				}
 			});
 
@@ -105,7 +123,7 @@ describe('crawler', function() {
 				if( templateParams["replaceKeyword1"] != undefined && templateParams["replaceKeyword2"] != undefined ) {
 				    done();
 				} else {
-					done( "Params not properly setup" );
+					done( "Replace params not properly setup" );
 				}
 			});
 

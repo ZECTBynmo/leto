@@ -11,6 +11,7 @@
 //////////////////////////////////////////////////////////////////////////
 // Requires
 var maker = require("maker").createMaker(),
+	async = require("async"),
 	fs = require("fs");
 
 //////////////////////////////////////////////////////////////////////////
@@ -37,7 +38,8 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 		oldParams = {},
 		alreadyHadParamsFile = false,
 		movingPlanPaths = [],
-		movingPlans = {};
+		movingPlans = {},
+		asyncCallQueue = [];
 
 	// load the previously existing params file
 	try {
@@ -48,95 +50,145 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	}
 	
 	function getReplaceParams( step ) {
-		for( var iKeyword in step.keywords ) {
-			var paramName = step.keywords[iKeyword];
-			templateParams[paramName] = oldParams[paramName] || "";
+		return function( cb ) {
+			for( var iKeyword in step.keywords ) {
+				var paramName = step.keywords[iKeyword];
+				templateParams[paramName] = oldParams[paramName] || "";
+			}
+
+			cb();
 		}
 	}
 
 	function getTemplateParams( step ) {
-		for( var iTemplate in step.templates ) {
-			var params = maker.getTemplateParams( step.templates[iTemplate].dest );
-			for( var iParam in params ) {
-				var paramName = params[iParam];
-				templateParams[paramName] = oldParams[paramName] || "";
-			}
+		return function( cb ) {
+
+			maker.loadTemplateDir( source + "/" + step.sourcedir, function(templates) {
+
+				for( var iTemplate in step.templates ) {
+
+					// Load params from the destination paths
+					var destPathParams = maker.getTemplateParams( step.templates[iTemplate].dest );
+					for( var iParam in destPathParams ) {
+						var pathParamName = destPathParams[iParam];
+						templateParams[pathParamName] = oldParams[pathParamName] || "";
+					}
+
+					// Load params from the template file contents
+					var templateObj = maker.getTemplate( step.templates[iTemplate].name );
+					
+					var fileContentsParams = maker.getTemplateParams( templateObj );
+					for( var iParam in fileContentsParams ) {
+						var fileParamName = fileContentsParams[iParam];
+						templateParams[fileParamName] = oldParams[fileParamName] || "";
+					}
+				}
+
+				cb();
+			});
 		}
 	}
 
 	function getMoveParams( step ) {
-		function getFolderParamsRecursive( folder ) {
-			for( var iChild in folder ) {
-				if( iChild == "files" ) {
-					for( var iFilePath in folder[iChild] ) {
-						var params = maker.getTemplateParams( folder[iChild][iFilePath] );
-						for( var iParam in params ) {
-							var paramName = params[iParam];
-							templateParams[paramName] = oldParams[paramName] || "";
+		return function( cb ) {
+
+			function getFolderParamsRecursive( folder ) {
+
+				for( var iChild in folder ) {
+					if( iChild == "files" ) {
+						for( var iFilePath in folder[iChild] ) {
+							var params = maker.getTemplateParams( folder[iChild][iFilePath] );
+							for( var iParam in params ) {
+								var paramName = params[iParam];
+								templateParams[paramName] = oldParams[paramName] || "";
+							}
 						}
+					} else {
+						getFolderParamsRecursive( folder[iChild] );
 					}
-				} else {
-					getFolderParamsRecursive( folder[iChild] );
 				}
 			}
-		}
 
-		var movingPlanPath = source + "/" + step.plan;
+			var movingPlanPath = source + "/" + step.plan;
 
-		try {
-			getFolderParamsRecursive( require(movingPlanPath) );
-		} catch( err ) {
-			log( "Crawl failed: Couldn't load your moving plan: " + movingPlanPath );
-			log( err );
-			return;
+			try {
+				getFolderParamsRecursive( require(movingPlanPath) );
+			} catch( err ) {
+				log( "Crawl failed: Couldn't load your moving plan: " + movingPlanPath );
+				log( err );
+				cb( err );
+			}
+
+			cb();
 		}
 	}
 
 	function getExecuteParams( step ) {
 
-	}
-
-	function writeFile( filePath, object ) {
-		log( "Writing gyp file " + filePath );
-		fs.writeFile( filePath, object, function(error) {
-		    if( error ) {
-		        log( error );
-		    } else {
-		        log( "The file was saved!" );
-		    }
-
-		    callback();
-		});
-	}
-
-	// Loop through the procedure to find stuff
-	// that might contain template strings
-	for( var iStep in procedure ) {
-		switch( procedure[iStep].type ) {
-		case "replace":
-			getReplaceParams( procedure[iStep] );
-		  	break;
-	  	case "template":
-			getTemplateParams( procedure[iStep] );
-		  	break;
-	  	case "move":
-			getMoveParams( procedure[iStep] );
-		  	break;
-	  	case "execute":
-			getExecuteParams( procedure[iStep] );
-		  	break;
-
-		default:
-		  	console.log( "Step type " + procedure[iStep].type + " not recognized" );
+		return function( cb ) { 
+			cb(); 
 		}
 	}
 
-	var strGypObject = JSON.stringify( templateParams, null, 4 );
+	function writeFile( filePath, object ) {
 
-	if( !alreadyHadParamsFile )
+		log( "Writing gyp file " + filePath );
+		var error = fs.writeFileSync( filePath, object );
+
+
+	    if( error ) {
+	        log( error );
+	    } else {
+	        log( "The file was saved!" );
+	    }
+
+	    callback();
+	}
+
+	function runCrawlSeries( finishedCallback ) {
+
+		// Grab our setup procedure from the recently cloned repo
+		var procedure = leto_setup.procedure;
+
+		for( var iStep=0; iStep<procedure.length; ++iStep ) {
+
+			switch( procedure[iStep].type ) {
+			case "replace":
+				asyncCallQueue.push( getReplaceParams(procedure[iStep]) );
+			  	break;
+		  	case "template":
+				asyncCallQueue.push( getTemplateParams(procedure[iStep]) );
+			  	break;
+		  	case "move":
+				asyncCallQueue.push( getMoveParams(procedure[iStep]) );
+			  	break;
+		  	case "execute":
+				asyncCallQueue.push( getExecuteParams(procedure[iStep]) );
+			  	break;
+
+			default:
+			  	console.log( "Step type " + procedure[iStep].type + " not recognized" );
+			}
+		}
+
+		// Run our async call queue
+		async.series( asyncCallQueue, finishedCallback );
+
+	}
+
+	var hasTemplateStep = false;
+	for( var iStep in procedure ) {
+		if( procedure[iStep].type == "template" )
+			hasTemplateStep = true;
+	}
+
+	runCrawlSeries( function(err) {
+
+		var strGypObject = JSON.stringify( templateParams, null, 4 );
+
 		writeFile( source + "/leto_params.json", strGypObject );
-	else
-		callback();
+	});
+	
 } // end crawl()
 
 

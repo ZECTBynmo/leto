@@ -115,12 +115,11 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			} catch( err ) {
 				console.log( "Failed to load moving plan " + movingPlanPath );
 				cb( err );
-			}
-			
+			}			
 
 			mover.setPlan( movingPlan );
 			mover.setDest( dest );
-			mover.setSrc( leto_setup.__source );
+			mover.setSrc( require("path").dirname(movingPlanPath) );
 			mover.move( cb );
 		}
 	}

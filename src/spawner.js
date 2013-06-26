@@ -16,7 +16,7 @@ var ares = require("ares").ares,
 	async = require("async"),
 	maker = require("maker").createMaker(),
 	mover = require("mover").createMover(),
-	gitOps = require("./src/gitOperations"),
+	gitOps = require("./gitOperations"),
 	ares = require("ares").ares;
 
 

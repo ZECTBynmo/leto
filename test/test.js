@@ -1,7 +1,7 @@
 var assert = require("assert");
 
-var Spawner = require("../spawner").spawner,
-	Crawler = require("../crawler").crawler,
+var Spawner = require("../src/spawner").spawner,
+	Crawler = require("../src/crawler").crawler,
 	spawner = new Spawner(),
 	crawler = new Crawler(),
 	test_move_leto = require( __dirname + "/test_move_leto.json" ),

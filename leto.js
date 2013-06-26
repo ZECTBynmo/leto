@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-var Spawner = require("./spawner").spawner,
-	Crawler = require("./crawler").crawler,
+var Spawner = require("./src/spawner").spawner,
+	Crawler = require("./src/crawler").crawler,
 	needle = require("needle"),
 	spawner = new Spawner(),
 	crawler = new Crawler(),

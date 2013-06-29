@@ -4,7 +4,9 @@ var Spawner = require("./src/spawner").spawner,
 	needle = require("needle"),
 	spawner = new Spawner(),
 	crawler = new Crawler(),
-	urls = require("./urls.json")
+	urls = require("./urls.json"),
+	ares = require("ares").ares,
+	fs = require("fs");
 
 require('json5/lib/require');
 
@@ -82,9 +84,35 @@ function spawnProject( contentsHash ) {
 		if( body.template === undefined ) 
 			return;
 
-		spawner.spawn( dest, body.template, options, body.contents, function() {
-			console.log( "Finished spawning" );
-		});
+		function spawnTemplate() {
+			spawner.spawn( dest, body.template, options, body.contents, function() {
+				console.log( "Finished spawning" );
+			});
+		}
+
+		// If this repo has a github setup, clone down the repo
+		if( body.template.github != undefined ) {
+
+			var oldCWD = process.cwd();
+
+			// Create temp directory for the clone of the template repo
+		    if( !require("path").existsSync(process.cwd() + '/__leto_template_clone/') ) {
+		    	console.log( "Making directory for clone of template repo")
+		        fs.mkdirSync( process.cwd() + '/__leto_template_clone/' );
+		    }
+
+		    process.chdir( process.cwd() + "/__leto_template_clone/" );
+
+			ares( "git clone git@github.com:" + body.template.github.user + "/" + body.template.github.repo + ".git", true, function() {
+				body.template.__source = process.cwd();
+
+				process.chdir( oldCWD );
+
+				spawnTemplate();
+			});
+		} else {
+			spawnTemplate();
+		}		
 	});
 }
 

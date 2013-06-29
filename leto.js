@@ -6,6 +6,7 @@ var Spawner = require("./src/spawner").spawner,
 	crawler = new Crawler(),
 	urls = require("./urls.json"),
 	ares = require("ares").ares,
+	wrench = require("wrench"),
 	fs = require("fs");
 
 require('json5/lib/require');

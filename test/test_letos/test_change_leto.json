@@ -1,0 +1,34 @@
+{   
+    "procedure": [
+    	{
+           "title": "Move our test file into place first :p",
+            "type": "move", 
+            "plan": "test/test_moving_plans/test_moving_plan.json"
+        },
+        {
+            "title": "Change some stuff",
+            "type": "change", 
+            "ruleset": "test/test_rulesets/testRules.js",
+            "changes": [
+            	{
+            		"rule": "insert",
+            		"args": "test += 5",
+            		"file": "test/_TEST/TestChangerSource.js",
+            		"line": 16
+            	},
+            	{
+            		"rule": "change",
+            		"args": "test += 444",
+            		"file": "test/_TEST/TestChangerSource.js",
+            		"line": 9
+            	},
+                {
+                    "rule": "bestRuleName",
+                    "file": "test/_TEST/TestChangerSource.js",
+                    "start": 23,
+                    "end": 26
+                }
+        	]
+        }
+    ]
+}

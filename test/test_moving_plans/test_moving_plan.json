@@ -1,0 +1,8 @@
+{
+	"_TEST": {
+		"files": [
+			"test/test_moving_plans/test_moving_plan.json",
+			"test/test_sources/TestChangerSource.js"
+		]
+	}
+}

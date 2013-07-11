@@ -16,8 +16,10 @@ var ares = require("ares").ares,
 	async = require("async"),
 	maker = require("maker").createMaker(),
 	mover = require("mover").createMover(),
+	changer = require("changer").createChanger(),
 	gitOps = require("./gitOperations"),
-	ares = require("ares").ares;
+	ares = require("ares").ares,
+	fs = require("fs-extra");
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -115,11 +117,11 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			} catch( err ) {
 				console.log( "Failed to load moving plan " + movingPlanPath );
 				cb( err );
-			}			
+			}
 
 			mover.setPlan( movingPlan );
 			mover.setDest( dest );
-			mover.setSrc( require("path").dirname(movingPlanPath) );
+			//mover.setSrc( require("path").dirname(movingPlanPath) );
 			mover.move( cb );
 		}
 	}
@@ -144,6 +146,99 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 		}
 	}
 
+	var getChangeCommand = function( step ) {
+		return function( cb ) {
+			// First templatize the ruleset path
+			if( step.ruleset != undefined ) {
+				var ruleSetPath = step.ruleset;
+				ruleSetPath = maker.renderTemplateToString( maker.template(ruleSetPath, contents) );
+
+				// Load the ruleset into a string and templatize it
+				var strRulesetContents = fs.readFileSync( leto_setup.__source + "/" + ruleSetPath, 'utf8' );
+				strRulesetContents = maker.renderTemplateToString( maker.template(strRulesetContents, contents) );
+
+				// Write the file out to our temp dir so we can load it like a normal node module
+				var tempOutputPath = leto_setup.tempRepoDest + "/" + require("path").basename(ruleSetPath);
+				fs.outputFileSync( tempOutputPath, strRulesetContents, 'utf8' );
+
+				var loadedRules = require( tempOutputPath );
+			}
+
+			var rules = loadedRules === undefined ? {} : loadedRules, /*step.ruleset != undefined ? require( tempOutputPath ) : {},*/
+				changeCallQueue = [];
+
+			for( var iRule in changer.defaultRules )
+				rules[iRule] = rules[iRule] || changer.defaultRules[iRule];
+
+			// We need to loop and do all of our changes asynchronously, and 
+			// then call back to resume running the spawn procedure. 
+			for( var iChange=0; iChange<step.changes.length; ++iChange ) {
+				
+				// Create a closure so that we can preserve variables while we loop
+				(function(){
+
+					var thisChange = step.changes[iChange];				
+					
+					var thisChangeFileFn = function( callb ) {
+
+						var args = thisChange.args;						
+
+						if( rules[thisChange.rule] === undefined ) {
+							var err = "Rule '" + thisChange.rule + "' not found";
+							console.log( err );
+							return callb( err );
+						}
+
+						// Allow users to use rule.start or rule.line interchangably, so that
+						// the API is nicer. Prefer rule.start when both are present
+						var startLine = thisChange.start || thisChange.line,
+							endLine = thisChange.end;
+
+//						if( startLine === undefined ) {
+//							var err = "Start line undefined, put a 'start' or 'line' property in your change setup";
+//							console.log( err );
+//							callb( err );
+//						}
+
+						if( endLine === undefined && thisChange.line != undefined ) {
+							endLine = thisChange.line;
+						}
+
+//						if( endLine === undefined ) {
+//							var err = "End line undefined, put a 'end' or 'line' property in your change setup";
+//							console.log( err );
+//							callb( err );
+//						}
+
+						// Build the arguments for our call to changer.change()
+						var changeArgs = [];
+						changeArgs.push( rules[thisChange.rule] );
+						changeArgs.push( thisChange.file );
+						changeArgs.push( startLine );
+						changeArgs.push( endLine );
+
+						if( typeof(thisChange.args) == "string" ) {
+							changeArgs.push( thisChange.args );					
+						} else if( typeof(thisChange.args) == "object" ) {
+							for( var iArg in thisChange.args )
+								changeArgs.push( thisChange.args[iArg] );
+						}
+
+						changeArgs.push( callb );
+
+						// Change a thing!
+						changer.change.apply( changer, changeArgs );
+					}
+
+					changeCallQueue.push( thisChangeFileFn );
+				}()); // end closure
+			} // end for each change
+
+			// Run our series of change commands
+			async.series( changeCallQueue, cb );
+		}
+	}
+
 	function runSpawnSeries() {
 
 		// Grab our setup procedure from the recently cloned repo
@@ -162,6 +257,9 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			  	break;
 		  	case "execute":
 				asyncCallQueue.push( getExecuteCommand(procedure[iStep]) );
+			  	break;
+		  	case "change":
+				asyncCallQueue.push( getChangeCommand(procedure[iStep]) );
 			  	break;
 
 			default:

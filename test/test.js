@@ -4,14 +4,16 @@ var Spawner = require("../src/spawner").spawner,
 	Crawler = require("../src/crawler").crawler,
 	spawner = new Spawner(),
 	crawler = new Crawler(),
-	test_move_leto = require( __dirname + "/test_move_leto.json" ),
-	test_replace_leto = require( __dirname + "/test_replace_leto.json" ),
-	test_execute_leto = require( __dirname + "/test_execute_leto.json" ),
-	test_publish_leto = require( __dirname + "/test_publish_leto.json" ),
-	test_template_leto = require( __dirname + "/test_template_leto.json" );
+	test_move_leto = 	 require( __dirname + "/test_letos/test_move_leto.json" ),
+	test_change_leto = 	 require( __dirname + "/test_letos/test_change_leto.json" ),
+	test_replace_leto =  require( __dirname + "/test_letos/test_replace_leto.json" ),
+	test_execute_leto =  require( __dirname + "/test_letos/test_execute_leto.json" ),
+	test_publish_leto =  require( __dirname + "/test_letos/test_publish_leto.json" ),
+	test_template_leto = require( __dirname + "/test_letos/test_template_leto.json" );
 
 // Set some fake sources for our letos, these would be set by the server otherwise
 test_move_leto.__source		 = process.cwd();
+test_change_leto.__source	 = process.cwd();
 test_replace_leto.__source 	 = process.cwd();
 test_execute_leto.__source   = process.cwd();
 test_publish_leto.__source   = process.cwd();
@@ -24,11 +26,38 @@ describe('spawner', function() {
 		it('should move some files', function(done) {
 			spawner.spawn( __dirname, test_move_leto, {}, {}, function() {
 				// Make sure the file was moved
-				if( require('path').existsSync( __dirname + "/_TEST/test_moving_plan.json") ) {
+				var movedMovingPlan = require( __dirname + "/_TEST/test_moving_plan.json" );
+				if( movedMovingPlan != undefined ) {
 				    done();
 				} else {
 					done("File not moved");
 				}
+			});
+		});
+
+		it('should change some stuff', function(done) {
+			var contents = {
+				templateFunctionName: "bestRuleName"
+			};
+
+			spawner.spawn( __dirname, test_change_leto, {}, contents, function() {
+				
+				var Thing = require( __dirname + "/_TEST/TestChangerSource" ).ChangerThing;
+
+				var thing = new Thing();
+
+				if( thing === undefined )
+					done( "Failed to move our file into place to setup our 'change' test" );
+
+				if( thing.changeTest() != 444 )
+					done( "Failed to change line" );
+				else if( thing.insertTest() != 5 )
+					done( "Failed to insert line" );
+				else if( thing[contents.templateFunctionName]() != 16 )
+					done( "Failed to templatize ruleset contents" );
+				else
+					done();
+				
 			});
 		});
 

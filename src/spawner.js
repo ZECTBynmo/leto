@@ -194,21 +194,9 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 						var startLine = thisChange.start || thisChange.line,
 							endLine = thisChange.end;
 
-//						if( startLine === undefined ) {
-//							var err = "Start line undefined, put a 'start' or 'line' property in your change setup";
-//							console.log( err );
-//							callb( err );
-//						}
-
-						if( endLine === undefined && thisChange.line != undefined ) {
+						if( endLine === undefined ) {
 							endLine = thisChange.line;
 						}
-
-//						if( endLine === undefined ) {
-//							var err = "End line undefined, put a 'end' or 'line' property in your change setup";
-//							console.log( err );
-//							callb( err );
-//						}
 
 						// Build the arguments for our call to changer.change()
 						var changeArgs = [];

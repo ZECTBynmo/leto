@@ -1,6 +1,5 @@
 var ares = require("ares").ares,
-	mkdirp = require("mkdirp"),
-	httpOps = require(__dirname + "/httpOperations");
+	mkdirp = require("mkdirp");
 
 
 //////////////////////////////////////////////////////////////////////////

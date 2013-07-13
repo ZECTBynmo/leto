@@ -84,7 +84,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			var filePathMap = {};
 			for( var iKey in step.keywords ) {
 				var keyword = step.keywords[iKey];
-				filePathMap[iKey] = contents[keyword];
+				filePathMap[contents[keyword]] = iKey;
 			}
 
 			maker.makeTemplatesFromDir( source, dest + "/", step.keywords, filePathMap, step.extensions, contents, cb );
@@ -181,7 +181,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 				var loadedRules = requireFromString( strRulesetContents );
 			}
 
-			var rules = loadedRules === undefined ? {} : loadedRules, /*step.ruleset != undefined ? require( tempOutputPath ) : {},*/
+			var rules = loadedRules === undefined ? {} : loadedRules,
 				changeCallQueue = [];
 
 			for( var iRule in changer.defaultRules )

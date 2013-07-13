@@ -5,7 +5,7 @@
             "type": "replace",
             "sourcedir": "test/test_sources",
             "keywords": {
-                "SomeRandomName": "testClassName"
+                "testClassName": "SomeRandomName"
             },
             "extensions": [
                 ".js"

@@ -1,13 +1,14 @@
 {   
+    "functions": "test/test_sources/test_functions.js",
     "procedure": [
         {
-           "title": "Template a file!",
+            "title": "Template a file!",
             "type": "template", 
             "sourcedir": "test/test_templates",
             "templates": [
             	{ 
             		"name": "test1", 
-            		"dest": "test/~~testFolder~~/templatedScript.js"
+            		"dest": "test/~~getTestFolderName~~/templatedScript.js"
             	}
             ]
         }

@@ -97,7 +97,7 @@ function spawnProject( contentsHash ) {
 			var oldCWD = process.cwd();
 
 			// Create temp directory for the clone of the template repo
-		    if( !require("path").existsSync(process.cwd() + '/__leto_template_clone/') ) {
+		    if( !fs.existsSync(process.cwd() + '/__leto_template_clone/') ) {
 		    	console.log( "Making directory for clone of template repo")
 		        fs.mkdirSync( process.cwd() + '/__leto_template_clone/' );
 		    }

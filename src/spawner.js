@@ -49,6 +49,13 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 		shouldCloneRepo = false;
 	}
 
+	function requireFromString(src, filename) {
+	    var Module = module.constructor;
+	    var m = new Module();
+	    m._compile(src, filename);
+	    return m.exports;
+	}
+
 	leto_setup.tempRepoDest = dest + this.tempRepoDest;
 
 	if( leto_setup.functions != undefined ) {
@@ -171,11 +178,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 				var strRulesetContents = fs.readFileSync( leto_setup.__source + "/" + ruleSetPath, 'utf8' );
 				strRulesetContents = maker.renderTemplateToString( maker.template(strRulesetContents, contents) );
 
-				// Write the file out to our temp dir so we can load it like a normal node module
-				var tempOutputPath = leto_setup.tempRepoDest + "/" + require("path").basename(ruleSetPath);
-				fs.outputFileSync( tempOutputPath, strRulesetContents, 'utf8' );
-
-				var loadedRules = require( tempOutputPath );
+				var loadedRules = requireFromString( strRulesetContents );
 			}
 
 			var rules = loadedRules === undefined ? {} : loadedRules, /*step.ruleset != undefined ? require( tempOutputPath ) : {},*/

@@ -51,6 +51,21 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	leto_setup.tempRepoDest = dest + this.tempRepoDest;
 
+	if( leto_setup.functions != undefined ) {
+		try {
+			var functionContents = require( leto_setup.__source + "/" + leto_setup.functions );
+		} catch( err ) {
+			console.log( "Error, failed to load functions at location " + leto_setup.functions );
+			console.log( err );
+			callback();
+		}
+
+		// Load all exports of the functions into our contents blob so that it's loaded later
+		for( var iFunction in functionContents ) {
+			contents[iFunction] = functionContents[iFunction];
+		}
+	}
+
 	var asyncCallQueue = [];
 
 	var getBatchReplace = function( step ) {
@@ -148,10 +163,9 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getChangeCommand = function( step ) {
 		return function( cb ) {
-			// First templatize the ruleset path
+
 			if( step.ruleset != undefined ) {
 				var ruleSetPath = step.ruleset;
-				ruleSetPath = maker.renderTemplateToString( maker.template(ruleSetPath, contents) );
 
 				// Load the ruleset into a string and templatize it
 				var strRulesetContents = fs.readFileSync( leto_setup.__source + "/" + ruleSetPath, 'utf8' );

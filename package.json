@@ -2,7 +2,7 @@
   "name": "leto",
   "version": "0.0.1",
   "author": "Mike Vegeto <michael.vegeto@gmail.com>",
-  "description": "Node Project Template Manager - A registry for template and boilerplage projects",
+  "description": "Leto - Spawn new projects from templates",
   "main": "./leto",
   "engines": {
     "node": ">=0.8.0"

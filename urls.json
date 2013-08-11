@@ -1,4 +1,4 @@
 {
-	"REMOTE_URL": "http://templateregistry.herokuapp.com",
-	"LOCAL_URL": "http://localhost:3000"
+	"remote": "http://leto.io",
+	"debug": "http://localhost:3000"
 }

@@ -64,6 +64,10 @@ case "set":
  	setVariables( actionArgs );
  	break;
 
+case "get": 	
+ 	printVariables( actionArgs );
+ 	break;
+
 case "arm": 	
  	addHolsterTemplate( actionArgs );
  	break;
@@ -132,7 +136,7 @@ function publishTemplate( args ) {
 //////////////////////////////////////////////////////////////////////////
 // Spawns a project from contents we retrieve from the database
 function spawnProject( args, contents ) {
-	if( args.length < 2 )
+	if( args.length < 1 )
 		return console.log( "Need more arguments to spawn" );
 
 	console.log( "Spawning project" );
@@ -143,48 +147,87 @@ function spawnProject( args, contents ) {
 		dest: dest
 	};
 
-	if( args[0] == "local" ) {
-		spawner.spawn( dest, body.template, options, body.contents, function() {
-			body.template.__source
+	function spawnLocalTemplate( source, localContents ) {
+		try { 
+			var localTemplate = require( source + "/leto" );
+		} catch( err ) {
+			console.log( "Error loading local template at: " + source );
+			console.log( err );
+			return;
+		}
+
+		localTemplate.__source = source;
+
+		spawner.spawn( dest, localTemplate, options, localContents, function() {
 			console.log( "Finished spawning" );
 		});
-	} else {
-		var registryUrl = registryType == "public" ? urls.REMOTE_URL : urls.LOCAL_URL;
+	}
 
-		needle.get( registryUrl + "/contents/" + contentsHash, {}, function( error, response, body ) {
-			if( body.template === undefined ) 
-				return console.log( "No template found, had to give up :(");
+	function spawnRemoteTemplate( url, hashOrUser, templateName ) {
 
-			function spawnTemplate() {
-				spawner.spawn( dest, body.template, options, body.contents, function() {
+		function cloneAndSpawn(template, spawnContents) {
+			var oldCWD = process.cwd();
+
+			// Create temp directory for the clone of the template repo
+		    if( !fs.existsSync(process.cwd() + '/__leto_template_clone/') ) {
+		    	console.log( "Making directory for clone of template repo" )
+		        fs.mkdirSync( process.cwd() + '/__leto_template_clone/' );
+		    }
+
+			ares( "git clone git@github.com:" + template.github.user + "/" + template.github.repo + ".git", true, function() {
+				template.__source = process.cwd();
+
+				process.chdir( oldCWD );
+
+				spawner.spawn( dest, template, options, spawnContents, function() {
 					console.log( "Finished spawning" );
 				});
-			}
+			});
+		}
 
-			// If this repo has a github setup, clone down the repo
-			if( body.template.github != undefined ) {
+		if( templateName === undefined ) { 
+			// We're assuming they're using a hash for some contents coming from a registry gui
+			needle.get( url + "/contents/" + hashOrUser, {}, function( error, response, body ) {
+				if( body.template === undefined ) 
+					return console.log( "No template found, had to give up :(");
 
-				var oldCWD = process.cwd();
+				cloneAndSpawn( body.template, body.contents );
+			});
+		} else {
+			needle.get( url + "/templates/" + hashOrUser + "/" + templateName, {}, function( error, response, body ) {
+				if( body.template === undefined ) 
+					return console.log( "No template found, had to give up :(");
 
-				// Create temp directory for the clone of the template repo
-			    if( !fs.existsSync(process.cwd() + '/__leto_template_clone/') ) {
-			    	console.log( "Making directory for clone of template repo" )
-			        fs.mkdirSync( process.cwd() + '/__leto_template_clone/' );
-			    }
+				cloneAndSpawn( body.template, contents );
+			});
+		}
+	} // end spawnRemoteTemplate()
 
-			    process.chdir( process.cwd() + "/__leto_template_clone/" );
+	// Is the user trying to spawn a project from their holster?
+	// 'leto spawn someproject'
+	var holsterItem = holster[args[0]];
+	if( holsterItem != undefined ) {
+		if( holsterItem.type == "local" ) {
+			spawnLocalTemplate( holsterItem.path, contents );
+		} else if( holsterItem.type == "remote" ) {
+			spawnRemoteTemplate( holsterItem.url, holsterItem.user, holsterItem.template );
+		} else {
+			return console.log( "Unknown holster item type, abort!" );
+		}
+	} else if( args.length > 2 ) {
 
-				ares( "git clone git@github.com:" + body.template.github.user + "/" + body.template.github.repo + ".git", true, function() {
-					body.template.__source = process.cwd();
-
-					process.chdir( oldCWD );
-
-					spawnTemplate();
-				});
-			} else {
-				spawnTemplate();
-			}		
-		});
+		// Is the user trying to call out a registry template by name?
+		// 'leto spawn someremote someuser someproject'
+		// 'leto spawn http://something.else 2348723984ydf89f67dc98xfg9876dfg'	
+		if( urls[args[0]] != undefined ) {
+			spawnRemoteTemplate( urls[args[0]], args[1], args[2] );
+		} else if( args[0].indexOf("http") == 0 ) {
+			spawnRemoteTemplate( args[0], args[1], args[2] );
+		} else {
+			console.log( "No remote url '" + args[0] + "' found, use 'leto set url " + args[0] + " http://something...' to set a url" );
+		}
+	} else {
+		console.log( "No idea how to spawn a template from your input :/" );
 	}
 }
 
@@ -243,30 +286,74 @@ function setVariables( args ) {
 
 
 //////////////////////////////////////////////////////////////////////////
+// Prints variables
+function printVariables( args ) {
+	// ex: 'leto set login myname'
+	switch( args[0] ) {
+	case "holster": 			
+		for( var iItem in holster ) {
+			console.log( iItem );
+			console.log( "  " + holster[iItem].type );
+		}
+	  	break;
+
+  	case "urls": 			
+		for( var iUrl in urls ) {
+			console.log( iUrl + ": " + urls[iUrl] );
+		}
+	  	break;
+
+	default:
+	  	console.log( "leto set argument " + args[0] + " is not recognized, try 'login', 'password', or 'url'" );
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
 // Sets our local storage of variables like registy login and pass
 function addHolsterTemplate( args ) {
-	if( args.length < 2 )
-		return console.log( "No arguments to set" );
+	var holsterItemName,
+		type,
+		path,
+		remoteName;
 
-	console.log( "Arming " + args[1] + " for convenient use" );
+	// Parse our arguments
+	if( args.length == 0 ) {
+		// 'leto arm'
+		try {
+			var templateToArm = require( process.cwd() + "/leto" );
+			holsterItemName = templateToArm.name;
+			type = "local";
+		} catch( err ) {
+			return console.log( "Couldn't find template to arm" );
+		}		
+	} else if( args.length == 1 ) { 
+		// 'leto arm holstername'
+		holsterItemName = args[0];
+		type = "local";
+	} else if( arg[0] != undefined && urls[arg[0]] != undefined ) {
+		// 'leto arm remote'
+		type = "remote";
+		remoteName = arg[0];
+		holsterItemName = args[1];
+	} else {
+		return console.log( "Error: Not sure what template you're trying to arm" );
+	}
+
+	console.log( "Arming " + holsterItemName + " for convenient use" );
 	
 	// ex: 'leto arm local name C:/path/to/project'
-	switch( args[0] ) {
+	switch( type ) {
 	case "local":
-		holster[args[1]] = {
+		holster[holsterItemName] = {
 			type: "local",
-			path: args[2] || process.cwd()
+			path: path || process.cwd()
 		};
 
 		writeSettingsFile( "holster.json", holster );
 	  	break;
 
-	// Assume we're trying to arm a remote template from one of our urls
-	// ex: 'leto arm debug name username templatename'
-	default:
-		if( urls[args[0]] === undefined )
-			return console.log( "Remote server " + args[0] + " url not found, add it using 'leto set url " + args[0] + " http://someurl.com'" );
-
+  	case "remote":
 		holster[args[1]] = {
 			type: "remote",
 			url: urls[arg[0]],
@@ -276,6 +363,11 @@ function addHolsterTemplate( args ) {
 		
 		writeSettingsFile( "holster.json", holster );
 		break;
+
+	// Assume we're trying to arm a remote template from one of our urls
+	// ex: 'leto arm debug holstername username templatename'
+	default:
+		return console.log( "Error: Not sure what template you're trying to arm" );
 	}
 }
 

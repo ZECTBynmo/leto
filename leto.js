@@ -38,12 +38,12 @@ for( var iArg in argv ) {
 		break;
 
 	case "$0":
-		// This just holds the path to the node exe, do nothing 
+		// This just holds the path to the node exe, do nothing
 		break;
 
 	default:
 		// Grab contents that the user is trying to specify
-		argContents[iArg] = argv[iArg]
+		argContents[iArg] = argv[iArg];
 	}
 } // end for each argument
 
@@ -53,7 +53,7 @@ case "spawn":
   	break;
 
 case "publish": 	
- 	publishTemplate();
+ 	publishTemplate( actionArgs );
  	break;
 
 case "crawl": 	
@@ -75,7 +75,13 @@ default:
 
 //////////////////////////////////////////////////////////////////////////
 // Push a project up to the registry
-function publishTemplate( source ) {
+function publishTemplate( args ) {
+	if( args.length < 1 )
+		return console.log( "Need more arguments to publish" );
+
+	if( urls[args[0]] === undefined )
+		return console.log( "Remote url " + args[0] + " not found, add it using 'leto set url " + args[0] + " http://someurl.com'" );
+
 	// Default the source to the current working directory
 	var source = process.cwd();
 
@@ -94,20 +100,30 @@ function publishTemplate( source ) {
 
 		template = setupJSON;
 		template.__params = templateParams;
-		template.__source = source;
-
-		console.log( template );
+//		template.__source = source;
 
 		var auth = JSON.parse( fs.readFileSync(__dirname + "/auth.json") );
+
+		if( auth.login == undefined )
+			return console.log( "Login not set, use 'leto set login yourname'" );
+		if( auth.password == undefined )
+			return console.log( "Password not set, use 'leto set password yourpass'" );
 
 		var httpBody = {
 			template: template,
 			auth: auth
 		};
 
-		needle.post( urls.REMOTE_URL + "/templates", httpBody, function(error) {
+		needle.post( urls[args[0]] + "/templates", httpBody, function(error, response, body) {
+
 			if( error != undefined )
 				console.log( error );
+			
+			var errorMessage = body.error || body.message;
+			if( errorMessage != undefined )
+				console.log( errorMessage );
+			else
+				console.log( "Publish successful!" );
 		});
 	});
 }

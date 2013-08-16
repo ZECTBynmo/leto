@@ -132,14 +132,11 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 
 	function writeFile( filePath, object ) {
 
-		log( "Writing gyp file " + filePath );
 		var error = fs.writeFileSync( filePath, object );
 
 
 	    if( error ) {
 	        log( error );
-	    } else {
-	        log( "The file was saved!" );
 	    }
 
 	    callback();

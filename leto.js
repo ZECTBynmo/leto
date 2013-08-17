@@ -1,6 +1,13 @@
-#!/usr/bin/env node
+//////////////////////////////////////////////////////////////////////////
+// leto - main script
+// Copywrite Mike Vegeto, 2013. All rights reserved
+//////////////////////////////////////////////////////////////////////////
+//
+// Main module for parsing command line arguments and dealing with users
+//
 var Spawner = require("./src/spawner").spawner,
 	Crawler = require("./src/crawler").crawler,
+	request = require('request'),
 	needle = require("needle"),
 	spawner = new Spawner(),
 	crawler = new Crawler(),
@@ -8,6 +15,7 @@ var Spawner = require("./src/spawner").spawner,
 	holster = require("./holster.json"),
 	ares = require("ares").ares,
 	wrench = require("wrench"),
+	JSON5 = require('json5'),
 	fs = require("fs");
 
 // Setup our JSON5 require hook
@@ -185,20 +193,44 @@ function spawnProject( args, contents ) {
 			});
 		}
 
-		if( templateName === undefined ) { 
-			// We're assuming they're using a hash for some contents coming from a registry gui
-			needle.get( url + "/contents/" + hashOrUser, {}, function( error, response, body ) {
-				if( body.template === undefined ) 
-					return console.log( "No template found, had to give up :(");
+		var auth = JSON.parse( fs.readFileSync(__dirname + "/auth.json") );
 
-				cloneAndSpawn( body.template, body.contents );
+		// Create an auth object in the way needle wants it
+		var authObj = {
+			'auth': {
+			    'user': auth.login,
+			    'pass': auth.password,
+			    'sendImmediately': true
+		  	}
+		};
+
+		if( templateName === undefined ) { 
+			var fullUrl = url + "/contents/" + hashOrUser;
+
+			// We're assuming they're using a hash for some contents coming from a registry gui
+			console.log( "Cloning " + hashOrUser );
+			request.get( fullUrl, authObj, function( error, response, body ) {
+				if( err != undefined )
+					console.log( err );
+				else if( Math.floor(response.statusCode/100) != 2 )
+					console.log( body );
+				else
+					cloneAndSpawn( body.template, body.contents );
 			});
 		} else {
-			needle.get( url + "/templates/" + hashOrUser + "/" + templateName, {}, function( error, response, body ) {
-				if( body.template === undefined ) 
-					return console.log( "No template found, had to give up :(");
+			var fullUrl = url + "/templates/" + hashOrUser + "/" + templateName;
 
-				cloneAndSpawn( body.template, contents );
+			console.log( "Cloning " + hashOrUser + ": " + templateName );
+			request.get( fullUrl, authObj, function( err, response, body ) {
+				var receivedTemplate = JSON5.parse( body );
+
+				if( err != undefined )
+					console.log( err );
+				else if( Math.floor(response.statusCode/100) != 2 )
+					console.log( body );
+				else {
+					cloneAndSpawn( receivedTemplate, contents );
+				}
 			});
 		}
 	} // end spawnRemoteTemplate()

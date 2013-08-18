@@ -84,7 +84,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			var filePathMap = {};
 			for( var iKey in step.keywords ) {
 				var keyword = step.keywords[iKey];
-				filePathMap[contents[keyword]] = iKey;
+				filePathMap[contents[iKey]] = keyword;
 			}
 
 			maker.makeTemplatesFromDir( source, dest + "/", step.keywords, filePathMap, step.extensions, contents, cb );

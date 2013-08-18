@@ -7,15 +7,16 @@
 //
 var Spawner = require("./src/spawner").spawner,
 	Crawler = require("./src/crawler").crawler,
+	holster = require("./holster.json"),
 	request = require('request'),
-	needle = require("needle"),
 	spawner = new Spawner(),
 	crawler = new Crawler(),
-	urls = require("./urls.json"),
-	holster = require("./holster.json"),
-	ares = require("ares").ares,
 	wrench = require("wrench"),
+	needle = require("needle"),
+	spawn = require("child_process").spawn,
 	JSON5 = require('json5'),
+	urls = require("./urls.json"),
+	ares = require("ares").ares,
 	fs = require("fs");
 
 // Setup our JSON5 require hook
@@ -112,7 +113,6 @@ function publishTemplate( args ) {
 
 		template = setupJSON;
 		template.__params = templateParams;
-//		template.__source = source;
 
 		var auth = JSON.parse( fs.readFileSync(__dirname + "/auth.json") );
 
@@ -127,7 +127,6 @@ function publishTemplate( args ) {
 		};
 
 		needle.post( urls[args[0]] + "/templates", httpBody, function(error, response, body) {
-
 			if( error != undefined )
 				console.log( error );
 			
@@ -182,14 +181,30 @@ function spawnProject( args, contents ) {
 		        fs.mkdirSync( process.cwd() + '/__leto_template_clone/' );
 		    }
 
-			ares( "git clone git@github.com:" + template.github.user + "/" + template.github.repo + ".git", true, function() {
-				template.__source = process.cwd();
+		    process.chdir( process.cwd() + '/__leto_template_clone/' );
 
-				process.chdir( oldCWD );
+		    var gitClone = spawn( 'git', ['clone', "git@github.com:" + template.github.user + "/" + template.github.repo] );
 
-				spawner.spawn( dest, template, options, spawnContents, function() {
-					console.log( "Finished spawning" );
-				});
+		    gitClone.stdout.on('data', function (data) {
+			  	console.log( data + "" );
+			});
+
+			gitClone.stderr.on('data', function (data) {
+			  	console.log( data + "" );
+			});
+
+			gitClone.on('close', function (code) {
+			  	if( code == 0 ) {
+					template.__source = process.cwd() + "/" + template.github.repo;
+
+					process.chdir( oldCWD );
+
+					spawner.spawn( dest, template, options, spawnContents, function() {
+						console.log( "Finished spawning" );
+					});
+			  	} else {
+			  		console.log( "git clone exited with code: " + code );
+			  	}
 			});
 		}
 
@@ -363,10 +378,10 @@ function addHolsterTemplate( args ) {
 		// 'leto arm holstername'
 		holsterItemName = args[0];
 		type = "local";
-	} else if( arg[0] != undefined && urls[arg[0]] != undefined ) {
+	} else if( args[0] != undefined && urls[args[0]] != undefined ) {
 		// 'leto arm remote'
 		type = "remote";
-		remoteName = arg[0];
+		remoteName = args[0];
 		holsterItemName = args[1];
 	} else {
 		return console.log( "Error: Not sure what template you're trying to arm" );
@@ -388,7 +403,7 @@ function addHolsterTemplate( args ) {
   	case "remote":
 		holster[args[1]] = {
 			type: "remote",
-			url: urls[arg[0]],
+			url: urls[args[0]],
 			user: args[2],
 			template: args[3]
 		};

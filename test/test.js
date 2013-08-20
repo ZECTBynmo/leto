@@ -3,8 +3,10 @@ var assert = require("assert");
 var Spawner = require("../src/spawner").spawner,
 	Crawler = require("../src/crawler").crawler,
 	spawner = new Spawner(),
-	crawler = new Crawler(),
-	test_move_leto = 	 require( __dirname + "/test_letos/test_move_leto.json" ),
+	crawler = new Crawler();
+
+// Our leto setups
+var test_move_leto = 	 require( __dirname + "/test_letos/test_move_leto.json" ),
 	test_change_leto = 	 require( __dirname + "/test_letos/test_change_leto.json" ),
 	test_replace_leto =  require( __dirname + "/test_letos/test_replace_leto.json" ),
 	test_execute_leto =  require( __dirname + "/test_letos/test_execute_leto.json" ),
@@ -30,7 +32,7 @@ describe('spawner', function() {
 				if( movedMovingPlan != undefined ) {
 				    done();
 				} else {
-					done("File not moved");
+					done( "File not moved" );
 				}
 			});
 		});
@@ -46,18 +48,19 @@ describe('spawner', function() {
 
 				var thing = new Thing();
 
-				if( thing === undefined )
+				if( thing === undefined ) {
 					done( "Failed to move our file into place to setup our 'change' test" );
+				}
 
-				if( thing.changeTest() != 444 )
+				if( thing.changeTest() != 444 ) {
 					done( "Failed to change line" );
-				else if( thing.insertTest() != 5 )
+				} else if( thing.insertTest() != 5 ) {
 					done( "Failed to insert line" );
-				else if( thing[contents.templateFunctionName]() != 16 )
+				} else if( thing[contents.templateFunctionName]() != 16 ) {
 					done( "Failed to templatize ruleset contents" );
-				else
+				} else {
 					done();
-				
+				}				
 			});
 		});
 
@@ -80,14 +83,21 @@ describe('spawner', function() {
 
 		it('should do batch replace on files inside of a dir', function(done) {
 			var contents = {
-				testClassName:"MyGeneratedClass"
+				testClassName: "MyGeneratedClass"
 			};
 
 			spawner.spawn( __dirname+"/_TEST/", test_replace_leto, {}, contents, function() {
-				var MyGeneratedClass = require( __dirname + "/_TEST/TestSource" ).MyGeneratedClass;
+				try {
+					// If this file loads with the name we're passing through 
+					// contents, it proves that we're replacing names in file paths
+					var MyGeneratedClass = require( __dirname + "/_TEST/MyGeneratedClass" ).MyGeneratedClass;
+				} catch( error ) {
+					done( "Error loading file with templated name: " + error );
+				}
 
 				var myObject = new MyGeneratedClass();
 
+				// This proves that we've loaded the file and changed its contents
 				if( myObject.test() == "poop" ) {
 				    done();
 				} else {

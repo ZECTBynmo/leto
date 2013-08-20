@@ -29,7 +29,7 @@
     "url": "http://github.com/ZECTBynmo/leto.git"
   },
   "dependencies": {
-    "ares": "0.0.8",
+    "ares": "0.0.12",
     "maker": "~0.1.0",
     "mkdirp": "~0.3.5",
     "needle": "~0.4.9",

@@ -142,7 +142,20 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	    callback();
 	}
 
+	function getFunctionsParams() {
+		var strFunctionsFule = fs.readFileSync( source + "/../" + leto_setup.functions, 'utf8' ),
+			functionsParams = maker.getTemplateParams( strFunctionsFule );
+
+		for( var iParam in functionsParams ) {
+			var functionsParamName = functionsParams[iParam];
+			templateParams[functionsParamName] = oldParams[functionsParamName] || "";
+		}		
+	}
+
 	function runCrawlSeries( finishedCallback ) {
+		// Grab parameters from our functions file if it exists
+		if( leto_setup.functions != undefined )
+			getFunctionsParams();
 
 		// Grab our setup procedure from the recently cloned repo
 		var procedure = leto_setup.procedure;

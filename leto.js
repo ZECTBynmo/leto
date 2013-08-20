@@ -73,7 +73,7 @@ case "set":
  	setVariables( actionArgs );
  	break;
 
-case "get": 	
+case "show": 	
  	printVariables( actionArgs );
  	break;
 
@@ -237,13 +237,12 @@ function spawnProject( args, contents ) {
 
 			console.log( "Cloning " + hashOrUser + ": " + templateName );
 			request.get( fullUrl, authObj, function( err, response, body ) {
-				var receivedTemplate = JSON5.parse( body );
-
 				if( err != undefined )
 					console.log( err );
 				else if( Math.floor(response.statusCode/100) != 2 )
-					console.log( body );
+					console.log( body + "" );
 				else {
+					var receivedTemplate = JSON5.parse( body + "" );
 					cloneAndSpawn( receivedTemplate, contents );
 				}
 			});

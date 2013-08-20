@@ -1,8 +1,10 @@
 //////////////////////////////////////////////////////////////////////////
-// nptm - node project template manager
+// Spawner - spawns new projects!
 //////////////////////////////////////////////////////////////////////////
 //
-// Main script!
+// Spawner is a 'puppet master' controller for project generation. It
+// takes a template procedure, and makes calls to Maker, Changer, and
+// other modules as necessary.
 /* ----------------------------------------------------------------------
 													Object Structures
 -------------------------------------------------------------------------
@@ -43,6 +45,8 @@ function spawner() {
 spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldCloneRepo, callback ) {
 	var _this = this;
 
+	var asyncCallQueue = [];
+
 	// Make shouldCloneRepo optional
 	if( callback === undefined ) {
 		callback = shouldCloneRepo;
@@ -50,18 +54,15 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 	}
 
 	function requireFromString(src, filename) {
-	    var Module = module.constructor;
-	    var m = new Module();
+	    var m = new module.constructor();
 	    m._compile(src, filename);
 	    return m.exports;
 	}
 
 	function templatizeAndLoadModule( src ) {
-
 		// Load the ruleset into a string and templatize it
 		var strContents = fs.readFileSync( src, 'utf8' );
 		strContents = maker.renderTemplateToString( maker.template(strContents, contents) );
-
 		return requireFromString( strContents );
 	}
 
@@ -78,14 +79,11 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			}
 		}
 		
-
 		// Load all exports of the functions into our contents blob so that it's loaded later
 		for( var iFunction in functionContents ) {
 			contents[iFunction] = functionContents[iFunction];
 		}
 	}
-
-	var asyncCallQueue = [];
 
 	var getBatchReplace = function( step ) {
 		return function( cb ) {
@@ -288,6 +286,9 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 		});
 	}
 
+	// -------------------------------------------------- //
+	// RUN THE SPAWN THE THING!
+	// -------------------------------------------------- //
 	if( shouldCloneRepo ) {
 		gitOps.cloneRepo( leto_setup, function() {
 			runSpawnSeries();

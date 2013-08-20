@@ -56,16 +56,28 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 	    return m.exports;
 	}
 
+	function templatizeAndLoadModule( src ) {
+
+		// Load the ruleset into a string and templatize it
+		var strContents = fs.readFileSync( src, 'utf8' );
+		strContents = maker.renderTemplateToString( maker.template(strContents, contents) );
+
+		return requireFromString( strContents );
+	}
+
 	leto_setup.tempRepoDest = dest + this.tempRepoDest;
 
 	if( leto_setup.functions != undefined ) {
-		try {
-			var functionContents = require( leto_setup.__source + "/" + leto_setup.functions );
-		} catch( err ) {
-			console.log( "Error, failed to load functions at location " + leto_setup.functions );
-			console.log( err );
-			callback();
+		if( leto_setup.functions != undefined ) {
+			try {
+				var functionContents = templatizeAndLoadModule( leto_setup.__source + "/" + leto_setup.functions );
+			} catch( err ) {
+				console.log( "Error, failed to load functions at location " + leto_setup.functions );
+				console.log( err );
+				callback();
+			}
 		}
+		
 
 		// Load all exports of the functions into our contents blob so that it's loaded later
 		for( var iFunction in functionContents ) {
@@ -84,7 +96,11 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			var filePathMap = {};
 			for( var iKey in step.keywords ) {
 				var keyword = step.keywords[iKey];
-				filePathMap[contents[iKey]] = keyword;
+
+				// If this item is a function, call it to find our string key
+				var keyToFind = typeof(contents[iKey]) == "function" ? contents[iKey]() : contents[iKey];
+
+				filePathMap[keyToFind] = keyword;
 			}
 
 			maker.makeTemplatesFromDir( source, dest + "/", step.keywords, filePathMap, step.extensions, contents, cb );
@@ -172,13 +188,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 		return function( cb ) {
 
 			if( step.ruleset != undefined ) {
-				var ruleSetPath = step.ruleset;
-
-				// Load the ruleset into a string and templatize it
-				var strRulesetContents = fs.readFileSync( leto_setup.__source + "/" + ruleSetPath, 'utf8' );
-				strRulesetContents = maker.renderTemplateToString( maker.template(strRulesetContents, contents) );
-
-				var loadedRules = requireFromString( strRulesetContents );
+				var loadedRules = templatizeAndLoadModule( leto_setup.__source + "/" + step.ruleset );
 			}
 
 			var rules = loadedRules === undefined ? {} : loadedRules,

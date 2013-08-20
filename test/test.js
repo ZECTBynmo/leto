@@ -10,7 +10,7 @@ var test_move_leto = 	 require( __dirname + "/test_letos/test_move_leto.json" ),
 	test_change_leto = 	 require( __dirname + "/test_letos/test_change_leto.json" ),
 	test_replace_leto =  require( __dirname + "/test_letos/test_replace_leto.json" ),
 	test_execute_leto =  require( __dirname + "/test_letos/test_execute_leto.json" ),
-	test_publish_leto =  require( __dirname + "/test_letos/test_publish_leto.json" ),
+	test_crawl_leto =  require( __dirname + "/test_letos/test_crawl_leto.json" ),
 	test_template_leto = require( __dirname + "/test_letos/test_template_leto.json" );
 
 // Set some fake sources for our letos, these would be set by the server otherwise
@@ -18,7 +18,7 @@ test_move_leto.__source		 = process.cwd();
 test_change_leto.__source	 = process.cwd();
 test_replace_leto.__source 	 = process.cwd();
 test_execute_leto.__source   = process.cwd();
-test_publish_leto.__source   = process.cwd();
+test_crawl_leto.__source   = process.cwd();
 test_template_leto.__source  = process.cwd();
 
 
@@ -124,15 +124,34 @@ describe('crawler', function() {
 
 	describe('#crawl()', function() {
 
-		crawler.crawl( __dirname, test_publish_leto, function() {
+		crawler.crawl( __dirname, test_crawl_leto, function() {
 
 			it('should create a leto_params.json file', function(done) {
-
 				// Make sure the file was moved
 				if( require(__dirname + "/leto_params.json") != undefined ) {
 				    done();
 				} else {
 					done( "Can't load leto_params.json" );
+				}
+			});
+
+			it('should remove params from the crawl list when they have been overridden', function(done) {
+				var templateParams = require(__dirname + "/leto_params.json");
+
+				if( templateParams["executeParam"] == undefined ) {
+				    done();
+				} else {
+					done( "Param listed in our params when it shouldn't be" );
+				}
+			});
+
+			it('should load params from our functions file', function(done) {
+				var templateParams = require(__dirname + "/leto_params.json");
+
+				if( templateParams["functionParam"] != undefined ) {
+				    done();
+				} else {
+					done( "Failed to load param from functions override file" );
 				}
 			});
 

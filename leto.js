@@ -7,7 +7,6 @@
 //
 var Spawner = require("./src/spawner").spawner,
 	Crawler = require("./src/crawler").crawler,
-	holster = require("./holster.json"),
 	request = require('request'),
 	spawner = new Spawner(),
 	crawler = new Crawler(),
@@ -15,9 +14,21 @@ var Spawner = require("./src/spawner").spawner,
 	needle = require("needle"),
 	spawn = require("child_process").spawn,
 	JSON5 = require('json5'),
-	urls = require("./urls.json"),
+	
 	ares = require("ares").ares,
 	fs = require("fs");
+
+function tryRequire( thingToRequire ) {
+	try {
+		return require( thingToRequire );
+	} catch( error ) {
+		return {};
+	}
+}
+
+var holster = tryRequire("./holster.json"),
+	urls = tryRequire("./urls.json"),
+	auth = tryRequire("./auth.json");
 
 // Setup our JSON5 require hook
 require('json5/lib/require');
@@ -81,6 +92,10 @@ case "arm":
  	addHolsterTemplate( actionArgs );
  	break;
 
+case "clear": 	
+ 	clearItem( actionArgs );
+ 	break;
+
 default:
   	console.log( "Action " + action + " is not recognized, try 'spawn', 'set', 'add', 'crawl', or 'publish'" );
 }
@@ -113,8 +128,6 @@ function publishTemplate( args ) {
 
 		template = setupJSON;
 		template.__params = templateParams;
-
-		var auth = JSON.parse( fs.readFileSync(__dirname + "/auth.json") );
 
 		if( auth.login == undefined )
 			return console.log( "Login not set, use 'leto set login yourname'" );
@@ -207,8 +220,6 @@ function spawnProject( args, contents ) {
 			  	}
 			});
 		}
-
-		var auth = JSON.parse( fs.readFileSync(__dirname + "/auth.json") );
 
 		// Create an auth object in the way needle wants it
 		var authObj = {
@@ -307,14 +318,12 @@ function setVariables( args ) {
 	// ex: 'leto set login myname'
 	switch( args[0] ) {
 	case "login": 			
-		var auth = JSON.parse( fs.readFileSync(__dirname + "/auth.json") );
 		auth.login = args[1];
 		writeSettingsFile( "auth.json", auth );
 	  	break;
 	
 	// ex: 'leto set password mypass'
   	case "password": 		
-		var auth = JSON.parse( fs.readFileSync(__dirname + "/auth.json") );
 		auth.password = args[1];
 		writeSettingsFile( "auth.json", auth );
 	  	break;
@@ -336,16 +345,24 @@ function setVariables( args ) {
 function printVariables( args ) {
 	// ex: 'leto set login myname'
 	switch( args[0] ) {
-	case "holster": 			
-		for( var iItem in holster ) {
-			console.log( iItem );
-			console.log( "  " + holster[iItem].type );
-		}
+	case "holster": 	
+		if( isObjectEmpty(holster) ) {
+			console.log( "No holster items" );
+		} else {
+			for( var iItem in holster ) {
+				console.log( iItem );
+				console.log( "    " + holster[iItem].type );
+			}
+		}		
 	  	break;
 
-  	case "urls": 			
-		for( var iUrl in urls ) {
-			console.log( iUrl + ": " + urls[iUrl] );
+  	case "urls": 
+  		if( isObjectEmpty(urls) ) {
+			console.log( "No urls" );
+		} else {
+			for( var iUrl in urls ) {
+				console.log( iUrl + ": " + urls[iUrl] );
+			}
 		}
 	  	break;
 
@@ -418,6 +435,34 @@ function addHolsterTemplate( args ) {
 }
 
 
+//////////////////////////////////////////////////////////////////////////
+// Clear some item (holster, urls, auth, etc)
+function clearItem( args ) {
+	if( args.length < 1 )
+		return console.log( "No arguments to clear" );
+
+	switch( args[0] ) {
+	case "holster":
+		holster = {};
+		writeSettingsFile( "holster.json", holster );
+	  	break;
+
+  	case "urls":
+		urls = {};
+		writeSettingsFile( "urls.json", urls );
+	  	break;
+
+  	case "auth":
+		auth = {};
+		writeSettingsFile( "auth.json", auth );
+	  	break;
+
+	default:
+		return console.log( "Error: " + args[0] + " is unknown, what are you trying to clear?" );
+	}
+}
+
+
 function writeSettingsFile( filename, data ) {
 	var strContents = JSON.stringify( data, null, 4 );
 
@@ -428,4 +473,16 @@ function writeSettingsFile( filename, data ) {
 	      	console.log( filename + " saved" );
 	    }
 	});
+}
+
+function isObjectEmpty( obj ) {
+    if( obj == null ) return true;
+    if( obj.length && obj.length > 0 ) return false;
+    if( obj.length === 0 ) return true;
+
+    for( var key in obj ) {
+        if( hasOwnProperty.call(obj, key) ) return false;
+    }
+
+    return true;
 }

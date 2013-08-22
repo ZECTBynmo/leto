@@ -1,6 +1,6 @@
 # Leto - Projects from the hip
 
-Leto is a language agnostic text templating library designed to help automate project setup.
+Leto will help you automate tasks for starting new projects in any language, on any major platform. Stop doing redundant project bring-up work, and help us do the same!
 
 ### [Website] (http://leto.io)
 
@@ -64,8 +64,22 @@ JSON5 allows us to setup leto using a simple JSON-compatible format, and make it
         {   "title": "Generate project files",
             "type": "execute",
             "command": "nonnode-gyp configure"
-        }, // end search and replace
+        }, // end run script
 
-    ] // end setup procedure 
+    ] // end setup procedure
 }
 ```
+
+The procedure consists of a series of 'steps'. Each step can have a different action, and can depend on user input where necessary. Things like file paths, names, etc. can be easily left for leto to 'templatize' using [maker] (https://github.com/ZECTBynmo/maker). A deeper explanation and examples will follow, but first...
+
+The following basic actions are available, directly replacing what you might do manually:
+
+* move - move file(s) from one place into another using [mover] (https://github.com/ZECTBynmo/mover)
+* replace - do batch search+replace on files and file paths within a directory
+* execute - run a shell command (so you can launch a script, etc...)
+
+You can also do some more advanced things like:
+
+* template - generate text files from maker templates
+* change - modify a file in place, according to 'rules' (JavaScript functions) that you specify
+

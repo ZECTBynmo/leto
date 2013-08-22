@@ -21,7 +21,7 @@ JSON5 allows us to setup leto using a simple JSON-compatible format, and make it
 ### Example leto.json5
 
 ```js
-{   "image": "https://secure.gravatar.com/avatar/8c758b186ab9e7358188ef30672ce84e?s=496&d=retro",                                                 
+{   "image": "https://secure.gravatar.com/avatar/8c758b186ab9e7358188ef30672ce84e?s=496&d=retro",
     "github": {                                                           
         "user": "ZECTBynmo",                                              
         "repo": "someRepo"

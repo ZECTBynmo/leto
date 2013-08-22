@@ -16,12 +16,12 @@ Leto is tailored specifically to perform one task: spawn a new project from a bo
 
 ### [JSON5] (https://github.com/aseemk/json5)
 
-JSON5 allows us to setup leto using a simple JSON-compatible fomat, and make it easier to read and write by allowing comments and things like trailing commas.
+JSON5 allows us to setup leto using a simple JSON-compatible format, and make it easier to read and write by allowing comments and things like trailing commas.
 
 ### Example leto.json5
 
 ```js
-{   "image": "https://1.gravatar.com/avatar/8c758b186ab9e7358188ef30672ce84e?d=https%3A%2F%2Fidenticons.github.com%2F56ca7c648bd9fadcb06a6722aa86ab1c.png&s=420",                                                 
+{   "image": "https://secure.gravatar.com/avatar/8c758b186ab9e7358188ef30672ce84e?s=496&d=retro",                                                 
     "github": {                                                           
         "user": "ZECTBynmo",                                              
         "repo": "someRepo"
@@ -35,8 +35,8 @@ JSON5 allows us to setup leto using a simple JSON-compatible fomat, and make it 
         // Step 1 - Move Sources
         // ******************************
         {   "title": "Move SDK sources into place",
-            "type": "move",                     // Move some files
-            "plan": "./movingPlan",             // Our moving plan (see https://github.com/ZECTBynmo/mover)
+            "type": "move",                     
+            "plan": "./movingPlan",             
         }, // end move sources
 
 
@@ -44,14 +44,14 @@ JSON5 allows us to setup leto using a simple JSON-compatible fomat, and make it 
         // Step 2 - Search and Replace
         // ******************************
         {   "title": "Change names and paths",
-            "type": "replace",                  // Search through the folder and find instances of keywords
-                                                // (ex: project name)
+            "type": "replace",                  
+                                                
             "keywords": {       
-                "MyProject": "projectName",     // The (case sensitive) strings we're searching for, and
-            },                                  // the title of the value it represents
+                "MyProject": "projectName",     
+            },                                  
                 
-            "extensions": [                     // We'll only open files with these extensions (we search
-                ".js",                          // through all files if this is omitted)
+            "extensions": [                     
+                ".js",                          
                 ".md",
                 ".json"
             ]

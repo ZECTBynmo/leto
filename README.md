@@ -47,7 +47,7 @@ JSON5 allows us to setup leto using a simple JSON-compatible format, and make it
             "type": "replace",                  
                                                 
             "keywords": {       
-                "MyProject": "projectName",     
+                "projectName": "MyProject",     
             },                                  
                 
             "extensions": [                     
@@ -74,11 +74,100 @@ The procedure consists of a series of 'steps'. Each step can have a different ac
 
 The following basic actions are available, directly replacing what you might do manually:
 
-* move - move file(s) from one place into another using [mover] (https://github.com/ZECTBynmo/mover)
-* replace - do batch search+replace on files and file paths within a directory
-* execute - run a shell command (so you can launch a script, etc...)
+#### move - move file(s) from one place into another using [mover] (https://github.com/ZECTBynmo/mover)
 
-You can also do some more advanced things like:
+```js
+{	title: "some title",
+	type: "move",
 
-* template - generate text files from maker templates
-* change - modify a file in place, using [changer] (https://github.com/ZECTBynmo/changer)
+	// Relative path to our moving plan (see the mover readme for more info)
+	plan: "./somePlan"
+}
+```
+
+#### replace - do batch search+replace on files and file paths within a directory
+
+This step reads through all files within a directory, and feeds them into [maker] (https://github.com/ZECTBynmo/maker), where they are searched for keywords. Where found, keywords will be replaced by variables determined by user input. In the example leto.json5 above, we were marking each instance of the string "MyProject" as an instance of the variable "projectName". Eventually, we'll figure out what the value projectName actually is, and do search replace.
+
+```js
+{	title: "some title",
+	type: "replace",
+
+	// The names of the items we want to flag for replacement
+	"keywords": {       
+        "whatIsTheKeyword": "TheKeyword",     
+        "what is THIS keyword?": "TheOtherKeyword!",    
+        "whatIsThisPath": "../../../../../../test"
+    },
+
+    // The file extensions that we want to process (we process everything if not present)
+    "extensions": [                     
+        ".js",                          
+        ".md",
+        ".json"
+    ]
+}
+```
+
+#### execute - run a shell command (so you can launch a script, etc...)
+
+```js
+{   "title": "Generate project files",
+    "type": "execute",
+
+    // The command we want to run
+    "command": "cd myDir && mkdir newDir && cd newDir"
+}
+```
+
+#### template - generate text files from maker templates
+
+```js
+{	"title": "Template a file!",
+    "type": "template",
+
+    // Directory where our template files (.tpl) are sitting
+    "sourcedir": "test/test_templates",
+
+    // A list of the template files we want to generate, and their destinations
+    // Destinations can be templatized
+    "templates": [
+    	{	"name": "test1", 
+    		"dest": "test/~~testFolderName~~/templatedScript.js"
+    	}
+    ]
+}
+```
+
+#### change - modify a file in place, using [changer] (https://github.com/ZECTBynmo/changer)
+
+```js
+{	"title": "Change some stuff",
+    "type": "change", 
+
+    // The relative path to our rule set (a node.js module)
+    "ruleset": "test/test_rulesets/testRules.js",
+
+    // The list of changes we want to do
+    "changes": [
+    	{
+    		"rule": "insert",
+    		"args": "test += 5",
+    		"file": "test/_TEST/TestChangerSource.js",
+    		"line": 16
+    	},
+    	{
+    		"rule": "change",
+    		"args": "test += 444",
+    		"file": "test/_TEST/TestChangerSource.js",
+    		"line": 9
+    	},
+        {
+            "rule": "bestRuleName",
+            "file": "test/_TEST/TestChangerSource.js",
+            "start": 23,
+            "end": 26
+        }
+	]
+}
+```

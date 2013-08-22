@@ -81,5 +81,4 @@ The following basic actions are available, directly replacing what you might do 
 You can also do some more advanced things like:
 
 * template - generate text files from maker templates
-* change - modify a file in place, according to 'rules' (JavaScript functions) that you specify
-
+* change - modify a file in place, using [changer] (https://github.com/ZECTBynmo/changer)

@@ -149,12 +149,14 @@ This step reads through all files within a directory, and feeds them into [maker
     "ruleset": "test/test_rulesets/testRules.js",
 
     // The list of changes we want to do
+    // Rules can be run on a single line using 'line', or they
+    // can be run on multiple lines using 'start' and 'end'.
     "changes": [
     	{
-    		"rule": "insert",
-    		"args": "test += 5",
-    		"file": "test/_TEST/TestChangerSource.js",
-    		"line": 16
+    		"rule": "insert",							// Name of the rule
+    		"args": "test += 5",						// optional arguments to the rule
+    		"file": "test/_TEST/TestChangerSource.js",	// File we're changing
+    		"line": 16									// Line to operate on
     	},
     	{
     		"rule": "change",
@@ -165,8 +167,8 @@ This step reads through all files within a directory, and feeds them into [maker
         {
             "rule": "bestRuleName",
             "file": "test/_TEST/TestChangerSource.js",
-            "start": 23,
-            "end": 26
+            "start": 23,								// Line to start on
+            "end": 26									// Line to end on
         }
 	]
 }

@@ -10,9 +10,9 @@ Leto will help you automate tasks for starting new projects in any language, on 
 npm install -g leto
 ```
 
-## Overview
+# Overview
 
-Leto is tailored specifically to perform one task: spawn a new project from a boilerplate project, given some information from the user. In order to do this, we need to create a 'procedure' for leto to follow. The procedure and other configuration information is placed into a file called leto.json, or leto.json5, and must sit within the main project directory.
+Leto is designed to spawn new projects from boilerplate projects, given some information from the user. In order to do this, we need to create a 'procedure' for leto to follow. The procedure and other configuration information is placed into a file called leto.json, or leto.json5, and must sit within the main project directory.
 
 ### [JSON5] (https://github.com/aseemk/json5)
 

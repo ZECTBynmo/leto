@@ -22,7 +22,7 @@
     }
   ],
   "bin": {
-    "leto": "leto.js"
+    "leto": "./leto.js"
   },
   "repository": {
     "type": "git",
@@ -38,6 +38,8 @@
     "changer": "0.0.7",
     "fs-extra": "~0.6.3",
     "optimist": "~0.6.0",
-    "request": "~2.27.0"
+    "request": "~2.27.0",
+    "async": "~0.2.9",
+    "wrench": "~1.5.1"
   }
 }

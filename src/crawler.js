@@ -53,7 +53,7 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 		return function( cb ) {
 			for( var iKeyword in step.keywords ) {
 				var paramName = step.keywords[iKeyword];
-				templateParams[paramName] = oldParams[paramName] || "";
+				templateParams[iKeyword] = oldParams[paramName] || "";
 			}
 
 			cb();
@@ -143,7 +143,9 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	}
 
 	function getFunctionsParams() {
-		var strFunctionsFule = fs.readFileSync( source + "/../" + leto_setup.functions, 'utf8' ),
+
+
+		var strFunctionsFule = fs.readFileSync( source + "/" + leto_setup.functions, 'utf8' ),
 			functionsParams = maker.getTemplateParams( strFunctionsFule );
 
 		for( var iParam in functionsParams ) {
@@ -197,6 +199,10 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 		var strGypObject = JSON.stringify( templateParams, null, 4 );
 
 		writeFile( source + "/leto_params.json", strGypObject );
+
+		console.log( "\nThe following params were found: " );
+		for( var iParam in templateParams )
+			console.log( iParam )
 	});
 	
 } // end crawl()

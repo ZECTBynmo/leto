@@ -48,6 +48,12 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	} catch( err ) {
 		log( "Couldn't find leto_params.json, generating one from scratch. You can open it and add comments to add tooltips to template parameters in the registry" );
 	}
+
+	function requireFromString(src, filename) {
+	    var m = new module.constructor();
+	    m._compile(src, filename);
+	    return m.exports;
+	}
 	
 	function getReplaceParams( step ) {
 		return function( cb ) {
@@ -143,21 +149,38 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	}
 
 	function getFunctionsParams() {
-
-
+		// Pull all template parameters our of the functions file
 		var strFunctionsFule = fs.readFileSync( source + "/" + leto_setup.functions, 'utf8' ),
 			functionsParams = maker.getTemplateParams( strFunctionsFule );
 
+		// Add these parameters to the list
 		for( var iParam in functionsParams ) {
 			var functionsParamName = functionsParams[iParam];
 			templateParams[functionsParamName] = oldParams[functionsParamName] || "";
 		}		
+
+		// Users can override template parametrs using the exports from
+		// the overrides file, so we need to compile the file and require it,
+		// and then see what it overrides. To be able to compile it, lets templatize
+		// it with some random strings.
+		var fakeContents = {};
+		for( iParam in functionsParams ) {
+			fakeContents[functionsParams[iParam]] = Math.random().toString(36).substring(7);
+		}
+
+		// Templatize the string contents
+		overrideTemplate = maker.renderTemplateToString( maker.template(strFunctionsFule, fakeContents) );
+
+		// Require the newly templatized string
+		var templatedModule = requireFromString( overrideTemplate );
+
+		// Delete contents that are being overridden
+		for( var iParam in templatedModule ) {
+			delete templateParams[iParam];
+		}
 	}
 
 	function runCrawlSeries( finishedCallback ) {
-		// Grab parameters from our functions file if it exists
-		if( leto_setup.functions != undefined )
-			getFunctionsParams();
 
 		// Grab our setup procedure from the recently cloned repo
 		var procedure = leto_setup.procedure;
@@ -195,6 +218,10 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	}
 
 	runCrawlSeries( function(err) {
+
+		// Grab parameters from our functions file if it exists
+		if( leto_setup.functions != undefined )
+			getFunctionsParams();
 
 		var strGypObject = JSON.stringify( templateParams, null, 4 );
 

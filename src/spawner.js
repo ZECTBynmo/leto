@@ -43,6 +43,11 @@ function spawner() {
 //////////////////////////////////////////////////////////////////////////
 // Spawns a project
 spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldCloneRepo, callback ) {
+	if( contents === undefined ) {
+		console.log( "!!! Spawning with undefined contents !!!" );
+		contents = {};
+	}
+
 	var _this = this;
 
 	var asyncCallQueue = [];

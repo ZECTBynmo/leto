@@ -1,5 +1,5 @@
 {     
-    "functions": "test/test_sources/test_functions2.js",
+    "functions": "test_sources/test_functions2.js",
     "procedure": [
         {
             "title": "Execute a command!",

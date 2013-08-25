@@ -231,18 +231,22 @@ function spawnProject( args, contents ) {
 		  	}
 		};
 
+		// If the template name is undefined, that probably means we're trying
+		// to spawn using a registry content hash
 		if( templateName === undefined ) { 
 			var fullUrl = url + "/contents/" + hashOrUser;
 
 			// We're assuming they're using a hash for some contents coming from a registry gui
 			console.log( "Cloning " + hashOrUser );
 			request.get( fullUrl, authObj, function( error, response, body ) {
-				if( err != undefined )
-					console.log( err );
+				if( error != undefined )
+					console.log( error );
 				else if( Math.floor(response.statusCode/100) != 2 )
 					console.log( body );
-				else
-					cloneAndSpawn( body.template, body.contents );
+				else {
+					var bodyObj = JSON.parse(body);
+					cloneAndSpawn( bodyObj.template, bodyObj.contents );
+				}
 			});
 		} else {
 			var fullUrl = url + "/templates/" + hashOrUser + "/" + templateName;
@@ -272,7 +276,7 @@ function spawnProject( args, contents ) {
 		} else {
 			return console.log( "Unknown holster item type, abort!" );
 		}
-	} else if( args.length > 2 ) {
+	} else if( args.length > 1 ) {
 
 		// Is the user trying to call out a registry template by name?
 		// 'leto spawn someremote someuser someproject'

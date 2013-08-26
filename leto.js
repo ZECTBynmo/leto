@@ -97,6 +97,10 @@ case "clear":
  	clearItem( actionArgs );
  	break;
 
+case "init": 	
+ 	initLetoConfig();
+ 	break;
+
 default:
   	console.log( "Action " + action + " is not recognized, try 'spawn', 'set', 'add', 'crawl', or 'publish'" );
 }
@@ -465,6 +469,22 @@ function clearItem( args ) {
 	default:
 		return console.log( "Error: " + args[0] + " is unknown, what are you trying to clear?" );
 	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Spit out a blank leto config file
+function initLetoConfig() {
+	var path = __dirname + "/blank_leto.json5",
+		file = fs.readFileSync( path, "utf8" );
+
+	fs.writeFile( process.cwd() + "/leto.json5", file, function(err) {
+		if( err ) {
+	      	console.log( err );
+	    } else {
+	      	console.log( "leto.json5 created at " + process.cwd() );
+	    }
+	});
 }
 
 

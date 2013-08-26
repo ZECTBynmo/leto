@@ -106,7 +106,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 				filePathMap[keyToFind] = keyword;
 			}
 
-			maker.makeTemplatesFromDir( source, dest + "/", step.keywords, filePathMap, step.extensions, contents, cb );
+			maker.makeTemplatesFromDir( source, dest + "/", step.keywords, filePathMap, step.extensions || [], contents, cb );
 		}
 	}
 

@@ -4,7 +4,26 @@
 // Copyright Mike Vegeto, 2013. All rights reserved
 //////////////////////////////////////////////////////////////////////////
 //
-// Main module for parsing command line arguments and dealing with users
+// Main module for parsing command line arguments and dealing
+// with you pesky users :)
+//
+// Welcome to leto! Hopefully you can find your way around the project
+// without too much difficulty. Help me make this better, so we can all
+// stop doing project bring-up work!
+// 
+// Basic structure of sources
+// ~~~~~~~~
+//
+// leto.js - parse command line args and manage other files
+//     -> src/spawner.js - spawn new projects
+//     -> src/crawler.js - crawl projects for template parameters
+//
+//
+// Other Files
+// ~~~~~~~~
+//
+// urls.json - collection of urls to template registries
+// holster.json - collection of templates 'armed' for convenient use
 //
 var Spawner = require("./src/spawner").spawner,
 	Crawler = require("./src/crawler").crawler,
@@ -499,6 +518,7 @@ function writeSettingsFile( filename, data ) {
 	    }
 	});
 }
+
 
 function isObjectEmpty( obj ) {
     if( obj == null ) return true;

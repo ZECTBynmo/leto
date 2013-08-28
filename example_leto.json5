@@ -12,9 +12,9 @@
     "procedure": [
 
         // ******************************
-        // Step 1 - Move VST Sources
+        // Step 1 - Move Sources
         // ******************************
-        {   "title": "Move VST SDK sources into place",
+        {   "title": "Move sources into place",
             "type": "move",                     // Move some files
             "plan": "./movingPlan",             // Our moving plan (see https://github.com/ZECTBynmo/mover)
         }, // end move VST sources

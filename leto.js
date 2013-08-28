@@ -15,8 +15,8 @@
 // ~~~~~~~~
 //
 // leto.js - parse command line args and manage other files
-//     -> src/spawner.js - spawn new projects
-//     -> src/crawler.js - crawl projects for template parameters
+//   ├── src/spawner.js - spawn new projects 
+//   └── src/crawler.js - crawl projects for template parameters
 //
 //
 // Other Files

@@ -73,6 +73,8 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	leto_setup.tempRepoDest = dest + this.tempRepoDest;
 
+	// If we have a functions file defined, try to load it 
+	// and override necessary parameters
 	if( leto_setup.functions != undefined ) {
 		if( leto_setup.functions != undefined ) {
 			try {
@@ -87,6 +89,15 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 		// Load all exports of the functions into our contents blob so that it's loaded later
 		for( var iFunction in functionContents ) {
 			contents[iFunction] = functionContents[iFunction];
+		}
+	}
+
+	// If we have any defaults defined, fill in missing values in the contents
+	if( leto_setup.defaults != undefined ) {
+		for( var iDefault in leto_setup.defaults ) {
+			if( contents[iDefault] === undefined ) {
+				contents[iDefault] = leto_setup.defaults[iDefault];
+			}
 		}
 	}
 

@@ -1,13 +1,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 // Leto template defs
 {   "image": "http://www.sxc.hu/pic/m/g/ga/gauz/1422319_mixing_desk.jpg", 
-    "version": "x.x.x",                                                   
+    "version": "0.0.0",                                                   
     "github": {                                                           
         "user": "ZECTBynmo",                                              
         "repo": "defaultTemplate"
     }, 
 
-    ////////////////////////////////////////////////////////////////////////////////
+    "defaults": {
+        "projectName": "DefaultProjectName"
+    },
+
+    // ~~~~~~~~~~~~~~~~~~~~~~~~
     // Setup procedure
     "procedure": [
 
@@ -27,7 +31,7 @@
             "type": "replace",                  // Search through the folder and find instances of keywords
                                                 // (ex: project name)
             "keywords": {       
-                "MyProject": "projectName",     // The (case sensitive) strings we're searching for, and
+                "projectName": "MyProject",     // The (case sensitive) strings we're searching for, and
             },                                  // the title of the value it represents
                 
             "extensions": [                     // We'll only open files with these extensions (we search
@@ -46,5 +50,5 @@
             "command": "nonnode-gyp configure"
         }, // end search and replace
 
-    ] // end setup procedure 
+    ]
 }

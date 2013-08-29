@@ -27,6 +27,10 @@ JSON5 allows us to setup leto using a simple JSON-compatible format, and make it
         "repo": "someRepo"
     }, 
 
+    "defaults": {
+    	"projectName": "DefaultProjectName",    
+    }
+
     ////////////////////////////////////////////////////////////////////////////////
     // Setup procedure
     "procedure": [

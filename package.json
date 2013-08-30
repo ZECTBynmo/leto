@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "ares": "0.0.12",
-    "maker": "~0.1.3",
+    "maker": "~0.1.4",
     "mkdirp": "~0.3.5",
     "needle": "~0.4.9",
     "mover": "0.0.10",

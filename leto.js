@@ -163,15 +163,17 @@ function publishTemplate( args ) {
 			auth: auth
 		};
 
-		needle.post( urls[args[0]] + "/templates", httpBody, function(error, response, body) {
-			if( error != undefined )
-				console.log( error );
+		needle.post( urls[args[0]] + "templates", httpBody, function(error, response, body) {
+			if( error != undefined ) {
+				console.log( "Error while publishing: " + error );
+			}
 			
 			var errorMessage = body.error || body.message;
-			if( errorMessage != undefined )
-				console.log( errorMessage );
-			else
+			if( errorMessage != undefined ) {
+				console.log( "Error from server: " + errorMessage );
+			} else {
 				console.log( "Publish successful!" );
+			}
 		});
 	});
 }

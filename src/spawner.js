@@ -59,9 +59,14 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 	}
 
 	function requireFromString(src, filename) {
-	    var m = new module.constructor();
-	    m._compile(src, filename);
-	    return m.exports;
+		try {
+			var m = new module.constructor();
+		    m._compile(src, filename);
+		    return m.exports;
+		} catch( err ) {
+			console.log( "Failed to load module at: " + filename );
+			console.log( err );
+		}	    
 	}
 
 	function templatizeAndLoadModule( src ) {
@@ -218,7 +223,19 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 				// Create a closure so that we can preserve variables while we loop
 				(function(){
 
-					var thisChange = step.changes[iChange];				
+					var thisChange = step.changes[iChange];		
+
+					// Templatize the filepath that we're about to change
+					thisChange.file = maker.renderTemplateToString( maker.template(thisChange.file, contents) );
+
+					// Templatize all of the arguments that we have
+					if( typeof(thisChange.args) == "string" ) {
+						thisChange.args = maker.renderTemplateToString( maker.template(thisChange.args, contents) );
+					} else if( thisChange.args instanceof Array ) {
+						for( var iArg in thisChange.args ) {
+							thisChange.args[iArg] = maker.renderTemplateToString( maker.template(thisChange.args[iArg], contents) );
+						}
+					}
 					
 					var thisChangeFileFn = function( callb ) {
 

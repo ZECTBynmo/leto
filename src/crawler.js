@@ -149,9 +149,15 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	}
 
 	function getFunctionsParams() {
-		// Pull all template parameters our of the functions file
-		var strFunctionsFule = fs.readFileSync( source + "/" + leto_setup.functions, 'utf8' ),
-			functionsParams = maker.getTemplateParams( strFunctionsFule );
+		try {
+			// Pull all template parameters our of the functions file
+			var strFunctionsFule = fs.readFileSync( source + "/" + leto_setup.functions, 'utf8' );
+		} catch ( err ) {
+			console.log( "Failed to load functions file at path: " + source + "/" + leto_setup.functions );
+			console.log( err );
+		}
+		
+		var functionsParams = maker.getTemplateParams( strFunctionsFule );
 
 		// Add these parameters to the list
 		for( var iParam in functionsParams ) {

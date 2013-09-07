@@ -119,6 +119,9 @@ This step reads through all files within a directory, and feeds them into [maker
 {   "title": "Generate project files",
     "type": "execute",
 
+    // The (optional) directory where we want to run the command
+    "workingdir": "someDir/otherDir",
+
     // The command we want to run
     "command": "cd myDir && mkdir newDir && cd newDir"
 }

@@ -47,6 +47,7 @@ function tryRequire( thingToRequire ) {
 }
 
 var holster = tryRequire("./holster.json"),
+	racks = tryRequire("./racks.json"),
 	urls = tryRequire("./urls.json"),
 	auth = tryRequire("./auth.json");
 
@@ -102,6 +103,10 @@ case "crawl":
 
 case "set": 	
  	setVariables( actionArgs );
+ 	break;
+
+case "save": 	
+ 	saveConfig( actionArgs );
  	break;
 
 case "show": 	
@@ -396,6 +401,29 @@ function printVariables( args ) {
 		}
 	  	break;
 
+  	case "racks":
+  		if( isObjectEmpty(racks) ) {
+			console.log( "No racks" );
+		} else {
+			for( var iRack in racks ) {
+				console.log( iRack + ": \n" + require("util").inspect(racks[iRack]) + "\n" );
+			}
+		}
+	  	break;
+
+  	case "rack":
+  		if( isObjectEmpty(racks) ) {
+			console.log( "No racks" );
+		} else {
+			var rackName = args[1];
+			if( racks[rackName] === undefined ) {
+				console.log( "No rack named " + args[1] + " found" );
+			} else {
+				console.log( racks[iRack] );
+			}
+		}
+	  	break;
+
 	default:
 	  	console.log( "leto set argument " + args[0] + " is not recognized, try 'login', 'password', or 'url'" );
 	}
@@ -487,8 +515,34 @@ function clearItem( args ) {
 		writeSettingsFile( "auth.json", auth );
 	  	break;
 
+  	case "racks":
+		racks = {};
+		writeSettingsFile( "racks.json", racks );
+	  	break;
+
 	default:
 		return console.log( "Error: " + args[0] + " is unknown, what are you trying to clear?" );
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Save some aspect of our current save
+function saveConfig( args ) {
+	if( args.length < 2 )
+		return console.log( "Not enough arguments to save" );
+
+	switch( args[0] ) {
+	case "rack":
+		var rackName = args[1];
+
+		// Save the current holster as a rack
+		racks[rackName] = holster;
+		writeSettingsFile( "racks.json", racks );
+	  	break;
+
+	default:
+		return console.log( "Error: " + args[0] + " is unknown, what are you trying to save?" );
 	}
 }
 

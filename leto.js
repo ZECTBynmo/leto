@@ -385,7 +385,7 @@ function printVariables( args ) {
 
 	function printRack( rack, name ) {
 		console.log( name );
-		console.log( "---------\n" );
+		console.log( "---------" );
 
 		if( rack === undefined ) {
 			console.log( "No rack named " + name + " found" );
@@ -572,13 +572,15 @@ function loadConfig( args ) {
 		var rackName = args[1];
 
 		if( isObjectEmpty(racks) ) {
-			return console.log( "No racks" );
+			console.log( "No racks" );
 		} else if( racks[rackName] === undefined ) {
-			return console.log( "No rack named " + rackName + " found" );
+			console.log( "No rack named " + rackName + " found" );
 		} else {
 
 			// Load the intended rack into our holster
 			holster = racks[rackName];
+			writeSettingsFile( "holster.json", holster );
+			console.log( "Rack " + rackName + " loaded" );
 		}
 
 	  	break;

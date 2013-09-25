@@ -109,6 +109,10 @@ case "save":
  	saveConfig( actionArgs );
  	break;
 
+case "load": 	
+ 	loadConfig( actionArgs );
+ 	break;
+
 case "show": 	
  	printVariables( actionArgs );
  	break;
@@ -378,6 +382,20 @@ function setVariables( args ) {
 //////////////////////////////////////////////////////////////////////////
 // Prints variables
 function printVariables( args ) {
+
+	function printRack( rack, name ) {
+		console.log( name );
+		console.log( "---------\n" );
+
+		if( rack === undefined ) {
+			console.log( "No rack named " + name + " found" );
+		} else {
+			for( var iTemplate in rack ) {
+				console.log( iTemplate + " : " + require("util").inspect(rack[iTemplate]) );
+			}				
+		}
+	}
+
 	// ex: 'leto set login myname'
 	switch( args[0] ) {
 	case "holster": 	
@@ -406,7 +424,7 @@ function printVariables( args ) {
 			console.log( "No racks" );
 		} else {
 			for( var iRack in racks ) {
-				console.log( iRack + ": \n" + require("util").inspect(racks[iRack]) + "\n" );
+				printRack( racks[iRack], iRack );
 			}
 		}
 	  	break;
@@ -416,11 +434,7 @@ function printVariables( args ) {
 			console.log( "No racks" );
 		} else {
 			var rackName = args[1];
-			if( racks[rackName] === undefined ) {
-				console.log( "No rack named " + args[1] + " found" );
-			} else {
-				console.log( racks[iRack] );
-			}
+			printRack( racks[rackName], rackName );
 		}
 	  	break;
 
@@ -545,6 +559,35 @@ function saveConfig( args ) {
 		return console.log( "Error: " + args[0] + " is unknown, what are you trying to save?" );
 	}
 }
+
+
+//////////////////////////////////////////////////////////////////////////
+// Load some configuration stuff
+function loadConfig( args ) {
+	if( args.length < 2 )
+		return console.log( "Not enough arguments to load" );
+
+	switch( args[0] ) {
+	case "rack":
+		var rackName = args[1];
+
+		if( isObjectEmpty(racks) ) {
+			return console.log( "No racks" );
+		} else if( racks[rackName] === undefined ) {
+			return console.log( "No rack named " + rackName + " found" );
+		} else {
+
+			// Load the intended rack into our holster
+			holster = racks[rackName];
+		}
+
+	  	break;
+
+	default:
+		return console.log( "Error: " + args[0] + " is unknown, what are you trying to save?" );
+	}
+}
+
 
 
 //////////////////////////////////////////////////////////////////////////

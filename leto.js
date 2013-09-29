@@ -4,12 +4,12 @@
 // Copyright Mike Vegeto, 2013. All rights reserved
 //////////////////////////////////////////////////////////////////////////
 //
-// Main module for parsing command line arguments and dealing
-// with you pesky users :)
-//
 // Welcome to leto! Hopefully you can find your way around the project
 // without too much difficulty. Help me make this better, so we can all
 // stop doing project bring-up work!
+//
+// leto.js is the module for parsing command line arguments and dealing
+// with you pesky users ;)
 // 
 // Basic structure of sources
 // ~~~~~~~~
@@ -23,7 +23,9 @@
 // ~~~~~~~~
 //
 // urls.json - collection of urls to template registries
+// auth.json - authorization info for remote servers
 // holster.json - collection of templates 'armed' for convenient use
+// racks.json - collection of holsters that can be saved and loaded
 //
 var Spawner = require("./src/spawner").spawner,
 	Crawler = require("./src/crawler").crawler,
@@ -33,8 +35,7 @@ var Spawner = require("./src/spawner").spawner,
 	wrench = require("wrench"),
 	needle = require("needle"),
 	spawn = require("child_process").spawn,
-	JSON5 = require('json5'),
-	
+	JSON5 = require('json5'),	
 	ares = require("ares").ares,
 	fs = require("fs");
 
@@ -98,7 +99,7 @@ case "publish":
  	break;
 
 case "crawl": 	
- 	crawlTemplate();
+ 	crawlTemplate( actionArgs );
  	break;
 
 case "set": 	
@@ -126,7 +127,11 @@ case "clear":
  	break;
 
 case "init": 	
- 	initLetoConfig();
+ 	initLetoConfig( actionArgs );
+ 	break;
+
+case "help": 	
+ 	runHelp( actionArgs );
  	break;
 
 default:
@@ -142,6 +147,9 @@ function publishTemplate( args ) {
 
 	if( urls[args[0]] === undefined )
 		return console.log( "Remote url " + args[0] + " not found, add it using 'leto set url " + args[0] + " http://someurl.com'" );
+
+	// If the url argument is not in our urls collection, hopefully it's a http address, so we'll use it raw
+	var strurl = urls[args[0]] === undefined ? args[0] : urls[args[0]];
 
 	// Default the source to the current working directory
 	var source = process.cwd();
@@ -172,7 +180,7 @@ function publishTemplate( args ) {
 			auth: auth
 		};
 
-		needle.post( urls[args[0]] + "templates", httpBody, function(error, response, body) {
+		needle.post( strurl + "templates", httpBody, function(error, response, body) {
 			if( error != undefined ) {
 				console.log( "Error while publishing: " + error );
 			}
@@ -330,13 +338,26 @@ function spawnProject( args, contents ) {
 
 //////////////////////////////////////////////////////////////////////////
 // Crawls over a template folder and expose all of the template params
-function crawlTemplate() {
+function crawlTemplate( args ) {
 	console.log( "Crawling template folder" );
 
-	console.log( "Add descriptions for template params inside of leto_params.json to add comments/tooltips in the registry" );
-
 	// Default the source to the current working directory
-	var source = process.cwd();
+	var source = "";
+
+	if( args[0] != undefined && holster[args[0]] != undefined ) {
+		source = holster[args[0]].path;
+	} else {
+		source = process.cwd();
+	}
+
+	// If there's already a leto_params.json file in the source directory,
+	// assume that they've crawled before, and don't tell them about
+	// registry tooltips
+	try {
+		var preExistingParams = require( source + "/leto_params.json" );
+	} catch( err ) {
+		console.log( "Add descriptions for template params inside of leto_params.json to add comments/tooltips in the registry" );
+	}
 
 	var setupJSON = require( source + "/leto.json5" );
 
@@ -383,6 +404,19 @@ function setVariables( args ) {
 // Prints variables
 function printVariables( args ) {
 
+	function printTemplate( template, name ) {
+		console.log( "\n" + name );
+
+		var strUnderline = "";
+		for( var iChar in name )
+			strUnderline += "~";
+
+		console.log( strUnderline );
+		
+		for( iAttr in template )
+			console.log( "    " + iAttr + " : " + template[iAttr] );
+	}
+
 	function printRack( rack, name ) {
 		console.log( name );
 		console.log( "---------" );
@@ -391,20 +425,18 @@ function printVariables( args ) {
 			console.log( "No rack named " + name + " found" );
 		} else {
 			for( var iTemplate in rack ) {
-				console.log( iTemplate + " : " + require("util").inspect(rack[iTemplate]) );
+				printTemplate( rack[iTemplate], iTemplate );
 			}				
 		}
 	}
 
-	// ex: 'leto set login myname'
 	switch( args[0] ) {
 	case "holster": 	
 		if( isObjectEmpty(holster) ) {
 			console.log( "No holster items" );
 		} else {
 			for( var iItem in holster ) {
-				console.log( iItem );
-				console.log( "    " + holster[iItem].type );
+				printTemplate( holster[iItem], iItem );
 			}
 		}		
 	  	break;
@@ -586,7 +618,7 @@ function loadConfig( args ) {
 	  	break;
 
 	default:
-		return console.log( "Error: " + args[0] + " is unknown, what are you trying to save?" );
+		return console.log( "Error: " + args[0] + " is unknown, what are you trying to load?" );
 	}
 }
 
@@ -594,17 +626,103 @@ function loadConfig( args ) {
 
 //////////////////////////////////////////////////////////////////////////
 // Spit out a blank leto config file
-function initLetoConfig() {
-	var path = __dirname + "/blank_leto.json5",
-		file = fs.readFileSync( path, "utf8" );
+function initLetoConfig( args ) {
+	if( args[0] != undefined && args[0] == "full" ) {
+		// ---------------------
+		// Full initialization
+		// ---------------------
+		var configDir = process.cwd() + "/leto_config",
+			templatesDir = configDir + "/templates";
 
-	fs.writeFile( process.cwd() + "/leto.json5", file, function(err) {
-		if( err ) {
-	      	console.log( err );
-	    } else {
-	      	console.log( "leto.json5 created at " + process.cwd() );
-	    }
-	});
+		// Create a leto configuration directory
+		wrench.mkdirSyncRecursive( configDir, 0777 );
+
+		// Create a templates directory
+		wrench.mkdirSyncRecursive( templatesDir, 0777 );
+
+		// Write out an empty template file
+		writeFile( templatesDir + "/template.tpl", "" );
+
+		// Write out an empty changer rules file
+		writeFile( configDir + "/rules.js", "exports.ruleName = function() {\n	return 'hello world'\n}" );
+
+		// Write out a more complete config file referencing the
+		// blank files we just created
+		writeFile( process.cwd() + "/leto.json5", fs.readFileSync(__dirname + "/full_leto.json5", "utf8") );
+
+	} else {
+		// Basic initialization
+		var blankLetoPath = __dirname + "/blank_leto.json5",
+			file = fs.readFileSync( blankLetoPath, "utf8" ),
+			destPath = process.cwd() + "/leto.json5";
+
+		writeFile( destPath, file );
+	}
+
+	function writeFile( path, contents ) {
+		try {
+			fs.writeFile( path, contents, function(err) {
+				if( err ) {
+			      	console.log( err );
+			    } else {
+			      	console.log( "Creating: " + path );
+			    }
+			});
+		} catch( err ) {
+			console.log( "Error writing file: " + err );
+		}
+	}	
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+// Help out the user
+function runHelp( args ) {
+	if( args === undefined || args.length == 0 ) {
+		console.log( "\n   Available commands (type 'leto help somecommand' for more details)\n" );
+		console.log( " - spawn     run a leto procedure" );
+		console.log( " - publish   push a template to the registry" );
+		console.log( " - crawl     look through a template directory and find all template parameters" );
+		console.log( " - set       change a single variable, like your password, username, etc." );
+		console.log( " - save      save aspects of your configuration, like a template rack" );
+		console.log( " - load      load aspects of your configuration" );
+		console.log( " - show      display some information" );
+		console.log( " - arm       load a template into your holster" );
+		console.log( " - clear     delete some aspect of your configuration" );
+		console.log( " - init      create a new leto.json5 in the current working dir" );
+	} else {
+		switch( args[0] ) {
+		case "spawn":
+			console.log( "\nUse a leto procedure. Procedures can come from local templates (on your hard drive), or from a remote url (like the leto registry). Either template can be used through the holster. Try 'leto help arm' for more details\n" );
+			console.log( "From holster" );
+			console.log( "----------------" );
+			console.log( "leto spawn [template_name] --param value" );
+			console.log( "" );
+			console.log( "From remote server" );
+			console.log( "----------------" );
+			console.log( "leto spawn [url] [registry_username] [template_name] --param value" );
+		  	break;
+
+	  	case "publish":
+			console.log( "\nPush your template up to a remote leto registry. The official registry url is http://leto.io\n" );
+			console.log( "Example:" );
+			console.log( "----------------" );
+			console.log( "leto publish [remote_url]" );
+			console.log( "" );
+			console.log( "The remote url can be a http address, or it can be the name of a remote url saved in your urls (type 'leto help set' for more details)" );
+		  	break;
+
+	  	case "crawl":
+			console.log( "\nLeto will look through your template and find all template parameters. This generates a file called leto_params.json, which contains all template parameters, and any tooltips you want to have for the registry\n" );
+			console.log( "Example:" );
+			console.log( "----------------" );
+			console.log( "leto crawl" );
+		  	break;
+
+		default:
+			return console.log( "Error: " + args[0] + " is unknown, send me an email or something" );
+		}
+	}
 }
 
 

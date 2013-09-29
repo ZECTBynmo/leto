@@ -128,35 +128,39 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getTemplateFiles = function( step ) {
 		return function( cb ) { 
-			maker.loadTemplateDir( step.sourcedir, function( loadedTemplates ) {
+			maker.loadTemplateDir( leto_setup.__source + "/" + step.sourcedir, function( loadedTemplates ) {
 				var makeFileCallQueue = [];
 
 				for( var iTemplate=0; iTemplate<step.templates.length; ++iTemplate ) {
-					// Preserve this template for closure
-					var thisTemplate = step.templates[iTemplate];
+					// Create a closure so that we can preserve variables while we loop
+					(function(){
 
-					// Templatize the path
-					thisTemplate.dest = maker.renderTemplateToString( maker.template(thisTemplate.dest, contents) );
+						// Preserve this template for closure
+						var thisTemplate = step.templates[iTemplate];
 
-					var thisTemplateFileFn = function( callb ) {
-						// Retreive the empty template object
-						var templateObj = maker.getTemplate( thisTemplate.name ),
-							templateFiles = [];
+						// Templatize the path
+						thisTemplate.dest = maker.renderTemplateToString( maker.template(thisTemplate.dest, contents) );
 
-						if( templateObj === undefined ) {
-							console.log( "Error retrieving template " + thisTemplate.name );
-							cb( "Error retrieving template " + thisTemplate.name );
+						var thisTemplateFileFn = function( callb ) {
+							// Retreive the empty template object
+							var templateObj = maker.getTemplate( thisTemplate.name ),
+								templateFiles = [];
+
+							if( templateObj === undefined ) {
+								console.log( "Error retrieving template " + thisTemplate.name );
+								cb( "Error retrieving template " + thisTemplate.name );
+							}
+
+							// Fill the template with our contents
+							templateObj = maker.fillTemplate( templateObj, contents );
+							templateFiles.push( templateObj );
+
+							// Write the file out to disk
+							maker.makeFile( thisTemplate.dest, templateFiles, callb );
 						}
 
-						// Fill the template with our contents
-						templateObj = maker.fillTemplate( templateObj, contents );
-						templateFiles.push( templateObj );
-
-						// Write the file out to disk
-						maker.makeFile( thisTemplate.dest, templateFiles, callb );
-					}
-
-					makeFileCallQueue.push( thisTemplateFileFn );
+						makeFileCallQueue.push( thisTemplateFileFn );
+					}()); // end closure
 				}
 
 				// Run our async call queue
@@ -205,16 +209,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 	var getChangeCommand = function( step ) {
 		return function( cb ) {
-
-			if( step.ruleset != undefined ) {
-				var loadedRules = templatizeAndLoadModule( leto_setup.__source + "/" + step.ruleset );
-			}
-
-			var rules = loadedRules === undefined ? {} : loadedRules,
-				changeCallQueue = [];
-
-			for( var iRule in changer.defaultRules )
-				rules[iRule] = rules[iRule] || changer.defaultRules[iRule];
+			var changeCallQueue = [];
 
 			// We need to loop and do all of our changes asynchronously, and 
 			// then call back to resume running the spawn procedure. 
@@ -222,6 +217,17 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 				
 				// Create a closure so that we can preserve variables while we loop
 				(function(){
+					// Load our rules inside of the closure, so that we can ensure that 
+					// variables in rules aren't as their applied between files
+					if( step.ruleset != undefined ) {
+						var loadedRules = templatizeAndLoadModule( leto_setup.__source + "/" + step.ruleset );
+					}
+
+					var rules = loadedRules === undefined ? {} : loadedRules;
+
+					// Load in our default rules (as long as no user-set rule relaces it)
+					for( var iRule in changer.defaultRules )
+						rules[iRule] = rules[iRule] || changer.defaultRules[iRule];
 
 					var thisChange = step.changes[iChange];		
 

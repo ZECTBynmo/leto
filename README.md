@@ -1,6 +1,8 @@
 # Leto - Projects from the hip
 
-Leto will help you automate tasks for starting new projects in any language, on any major platform. Stop doing redundant project bring-up work, and help us do the same!
+Leto is a general purpose text wrangler that can help automate tasks in any language, on any major platform.
+
+Do you find yourself writing the same code over and over? Do you waste time running search replace, looking up command line arguments, or otherwise doing non-dev work? Leto is built for you! Run complicated procedures in seconds, and automate away all your busy work.
 
 ### [Website] (http://leto.io)
 
@@ -74,7 +76,7 @@ JSON5 allows us to setup leto using a simple JSON-compatible format, and make it
 }
 ```
 
-The procedure consists of a series of 'steps'. Each step can have a different action, and can depend on user input where necessary. Things like file paths, names, etc. can be easily left for leto to 'templatize' using [maker] (https://github.com/ZECTBynmo/maker). A deeper explanation and examples will follow, but first...
+The procedure consists of a series of 'steps'. Each step can have a different action, and can depend on user input where necessary.
 
 The following basic actions are available, directly replacing what you might do manually:
 
@@ -89,7 +91,7 @@ The following basic actions are available, directly replacing what you might do 
 }
 ```
 
-#### replace - do batch search+replace on files and file paths within a directory
+#### replace - do batch search+replace on files and paths within a dir using [maker] (https://github.com/ZECTBynmo/maker)
 
 This step reads through all files within a directory, and feeds them into [maker] (https://github.com/ZECTBynmo/maker), where they are searched for keywords. Where found, keywords will be replaced by variables determined by user input. In the example leto.json5 above, we were marking each instance of the string "MyProject" as an instance of the variable "projectName". Eventually, we'll figure out what the value projectName actually is, and do search replace.
 
@@ -127,7 +129,7 @@ This step reads through all files within a directory, and feeds them into [maker
 }
 ```
 
-#### template - generate text files from maker templates
+#### template - generate text files from [maker] (https://github.com/ZECTBynmo/maker) templates
 
 ```js
 {	"title": "Template a file!",
@@ -180,3 +182,16 @@ This step reads through all files within a directory, and feeds them into [maker
 	]
 }
 ```
+
+### Template layer
+
+Almost everything in leto is passed through the 'template layer' using [maker] (https://github.com/ZECTBynmo/maker). Many parts of the leto.json5 configuration are inspected for 'template strings', allowing you to expose parts of your project as variables, which will be filled with user input later.
+
+For example, lets say we were using 
+
+Some places where you can use templates
+
+    Most file paths inside of leto.json5
+    File paths inside of [mover] (https://github.com/ZECTBynmo/mover) plans
+    Anything within 'change' rules
+    Anything within leto template files (.tpl)

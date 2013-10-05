@@ -76,24 +76,37 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 		return requireFromString( strContents );
 	}
 
+	function templatizeAndLoadFile( src ) {
+		// Load the ruleset into a string and templatize it
+		var strContents = fs.readFileSync( src, 'utf8' );
+		strContents = maker.renderTemplateToString( maker.template(strContents, contents) );
+		return strContents;
+	}
+
 	leto_setup.tempRepoDest = dest + this.tempRepoDest;
 
 	// If we have a functions file defined, try to load it 
 	// and override necessary parameters
 	if( leto_setup.functions != undefined ) {
-		if( leto_setup.functions != undefined ) {
-			try {
-				var functionContents = templatizeAndLoadModule( leto_setup.__source + "/" + leto_setup.functions );
-			} catch( err ) {
-				console.log( "Error, failed to load functions at location " + leto_setup.functions );
-				console.log( err );
-				callback();
-			}
+		try {
+			var functionContents = templatizeAndLoadModule( leto_setup.__source + "/" + leto_setup.functions );
+		} catch( err ) {
+			console.log( "Error, failed to load functions at location " + leto_setup.functions );
+			console.log( err );
+			callback();
 		}
 		
 		// Load all exports of the functions into our contents blob so that it's loaded later
 		for( var iFunction in functionContents ) {
 			contents[iFunction] = functionContents[iFunction];
+		}
+	}
+
+	// If we have external text files that we need to laod, read them
+	// all in and templatize them
+	if( leto_setup.externals != undefined ) {
+		for( var iExternal in leto_setup.externals ) {
+			contents[iExternal] = templatizeAndLoadFile( leto_setup.__source + "/" + leto_setup.externals[iExternal] );
 		}
 	}
 

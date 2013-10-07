@@ -122,7 +122,7 @@ case "arm":
  	addHolsterTemplate( actionArgs );
  	break;
 
-case "clear": 	
+case "delete": 	
  	clearItem( actionArgs );
  	break;
 
@@ -409,7 +409,7 @@ function printVariables( args ) {
 
 		var strUnderline = "";
 		for( var iChar in name )
-			strUnderline += "~";
+			strUnderline += ".";
 
 		console.log( strUnderline );
 		
@@ -418,8 +418,8 @@ function printVariables( args ) {
 	}
 
 	function printRack( rack, name ) {
-		console.log( name );
-		console.log( "---------" );
+		console.log( "\n" + "                                               " + name );
+		console.log( "----------------------------------------------------------" );
 
 		if( rack === undefined ) {
 			console.log( "No rack named " + name + " found" );
@@ -566,6 +566,16 @@ function clearItem( args ) {
 		writeSettingsFile( "racks.json", racks );
 	  	break;
 
+  	case "rack":
+  		var rackToDelete = racks[args[1]];
+  		if( rackToDelete === undefined ) {
+  			console.log( "No rack found with name " + args[1] )
+  		} else {
+  			delete racks[args[1]];
+  			writeSettingsFile( "racks.json", racks );
+  		}
+	  	break;
+
 	default:
 		return console.log( "Error: " + args[0] + " is unknown, what are you trying to clear?" );
 	}
@@ -688,7 +698,7 @@ function runHelp( args ) {
 		console.log( " - load      load aspects of your configuration" );
 		console.log( " - show      display some information" );
 		console.log( " - arm       load a template into your holster" );
-		console.log( " - clear     delete some aspect of your configuration" );
+		console.log( " - delete    delete some aspect of your configuration" );
 		console.log( " - init      create a new leto.json5 in the current working dir" );
 	} else {
 		switch( args[0] ) {
@@ -696,18 +706,18 @@ function runHelp( args ) {
 			console.log( "\nUse a leto procedure. Procedures can come from local templates (on your hard drive), or from a remote url (like the leto registry). Either template can be used through the holster. Try 'leto help arm' for more details\n" );
 			console.log( "From holster" );
 			console.log( "----------------" );
-			console.log( "leto spawn [template_name] --param value" );
+			console.log( "leto spawn [template name] --param value" );
 			console.log( "" );
 			console.log( "From remote server" );
 			console.log( "----------------" );
-			console.log( "leto spawn [url] [registry_username] [template_name] --param value" );
+			console.log( "leto spawn [url] [registry username] [template name] --param value" );
 		  	break;
 
 	  	case "publish":
 			console.log( "\nPush your template up to a remote leto registry. The official registry url is http://leto.io\n" );
 			console.log( "Example:" );
 			console.log( "----------------" );
-			console.log( "leto publish [remote_url]" );
+			console.log( "leto publish [remote url]" );
 			console.log( "" );
 			console.log( "The remote url can be a http address, or it can be the name of a remote url saved in your urls (type 'leto help set' for more details)" );
 		  	break;

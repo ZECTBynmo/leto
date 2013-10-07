@@ -132,7 +132,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 				// If this item is a function, call it to find our string key
 				var keyToFind = typeof(contents[iKey]) == "function" ? contents[iKey]() : contents[iKey];
 
-				filePathMap[keyToFind] = keyword;
+				filePathMap[keyword] = keyToFind;
 			}
 
 			maker.makeTemplatesFromDir( source, dest + "/", step.keywords, filePathMap, step.extensions || [], contents, cb );

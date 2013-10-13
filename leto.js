@@ -418,8 +418,17 @@ function printVariables( args ) {
 	}
 
 	function printRack( rack, name ) {
-		console.log( "\n" + "                                               " + name );
-		console.log( "----------------------------------------------------------" );
+		var strUnderscore = "-------------------------------------------------------------------------------",
+			strNameLine = name;
+		for( var iChar in strUnderscore ) {
+			if( iChar > strUnderscore.length - name.length - 1)
+				break;
+
+			strNameLine = " " + strNameLine;
+		}
+
+		console.log( strNameLine );
+		console.log( strUnderscore );
 
 		if( rack === undefined ) {
 			console.log( "No rack named " + name + " found" );
@@ -551,9 +560,29 @@ function clearItem( args ) {
 		writeSettingsFile( "holster.json", holster );
 	  	break;
 
+  	case "armed":
+  		var templateToDelete = holster[args[1]];
+		if( templateToDelete === undefined ) {
+  			console.log( "No template found with name " + args[1] )
+  		} else {
+  			delete holster[args[1]];
+  			writeSettingsFile( "holster.json", holster );
+  		}
+	  	break;
+
   	case "urls":
 		urls = {};
 		writeSettingsFile( "urls.json", urls );
+	  	break;
+
+  	case "url":
+  		var urlToDelete = urls[args[1]];
+		if( urlToDelete === undefined ) {
+  			console.log( "No url found with name " + args[1] )
+  		} else {
+  			delete urls[args[1]];
+  			writeSettingsFile( "urls.json", urls );
+  		}
 	  	break;
 
   	case "auth":
@@ -620,7 +649,10 @@ function loadConfig( args ) {
 		} else {
 
 			// Load the intended rack into our holster
-			holster = racks[rackName];
+			for( var iTemplate in racks[rackName] ) {
+				holster[iTemplate] = racks[rackName][iTemplate];
+			}
+
 			writeSettingsFile( "holster.json", holster );
 			console.log( "Rack " + rackName + " loaded" );
 		}
@@ -689,7 +721,7 @@ function initLetoConfig( args ) {
 // Help out the user
 function runHelp( args ) {
 	if( args === undefined || args.length == 0 ) {
-		console.log( "\n   Available commands (type 'leto help somecommand' for more details)\n" );
+		console.log( "\n   Available commands (type 'leto help [some command]' for more details)\n" );
 		console.log( " - spawn     run a leto procedure" );
 		console.log( " - publish   push a template to the registry" );
 		console.log( " - crawl     look through a template directory and find all template parameters" );
@@ -727,6 +759,53 @@ function runHelp( args ) {
 			console.log( "Example:" );
 			console.log( "----------------" );
 			console.log( "leto crawl" );
+		  	break;
+
+	  	case "set":
+			console.log( "\nSet the value of a config variable. Your options are:\n" );
+			console.log( " - leto set url [url name] [http://yoururl]" );
+			console.log( " - leto set username [user name]" );
+			console.log( " - leto set password [password]" );
+		  	break;
+
+	  	case "save":
+			console.log( "\nSave more complex config variables. Your options are:\n" );
+			console.log( " - leto save rack [rack name]" );
+		  	break;
+
+	  	case "load":
+			console.log( "\nLoad up more complex config variables. Your options are:\n" );
+			console.log( " - leto load rack [rack name]" );
+		  	break;
+
+	  	case "show":
+			console.log( "\nPrint leto variables to the console. Your options are:\n" );
+			console.log( " - leto show holster" );
+			console.log( " - leto show armed [template name]" );
+			console.log( " - leto show racks" );
+			console.log( " - leto show rack [rack name]" );
+			console.log( " - leto show urls" );
+		  	break;
+
+	  	case "arm":
+			console.log( "\nPut a template into the holster for convenient command line use. The template can either be a local template (on disk), or a remote template (from the registry)\n" );
+			console.log( "Local template:" );
+			console.log( " - leto arm [holster name] ([path on disk])\n" );
+			console.log( "Remote template:" );
+			console.log( " - leto arm [remote from urls] [holster name] [template owner] [template name]" );
+			console.log( " - leto arm [http://address] [holster name] [template owner] [template name]" );
+		  	break;
+
+	  	case "delete":
+			console.log( "\nRemove a leto config item or set of items (does not delete template files on disk). Your options are:\n" );
+			console.log( " - leto delete holster      (deletes all holster items)" );
+			console.log( " - leto delete armed [name] (deletes a holster item)" );
+			console.log( " - leto delete racks        (deletes all racks)" );
+			console.log( " - leto delete rack [name]  (deletes a rack)" );
+			console.log( " - leto delete urls         (clears all urls)" );
+			console.log( " - leto delete url [name]   (clears a url)" );
+			console.log( " - leto delete auth         (clears auth config)" );
+
 		  	break;
 
 		default:

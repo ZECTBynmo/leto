@@ -19,15 +19,13 @@
             ]
         },
 
-        {   "title": "Change some stuff",
+        {   "title": "",
             "type": "change", 
 
             "ruleset": "leto_config/rules.js",
             "changes": [
                 {   "rule": "ruleName",
                     "file": "text/file/you/want/to/change.extension",
-                    "start": 0,
-                    "end": 579297835
                 },
             ]
         }

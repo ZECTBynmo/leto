@@ -22,8 +22,8 @@
             "type": "replace",
             "sourcedir": "test/test_sources",
             "keywords": {
-                "SomeRandomName": "replaceKeyword1",
-                "AnotherRandomName": "replaceKeyword2"
+                "replaceKeyword1": "SomeRandomName",
+                "replaceKeyword2": "AnotherRandomName"
             },
             "extensions": [
                 ".js"

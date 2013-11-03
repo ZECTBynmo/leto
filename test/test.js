@@ -6,20 +6,22 @@ var Spawner = require("../src/spawner").spawner,
 	crawler = new Crawler();
 
 // Our leto setups
-var test_move_leto = 	 require( __dirname + "/test_letos/test_move_leto.json" ),
-	test_change_leto = 	 require( __dirname + "/test_letos/test_change_leto.json" ),
-	test_replace_leto =  require( __dirname + "/test_letos/test_replace_leto.json" ),
-	test_execute_leto =  require( __dirname + "/test_letos/test_execute_leto.json" ),
-	test_crawl_leto =  require( __dirname + "/test_letos/test_crawl_leto.json" ),
-	test_template_leto = require( __dirname + "/test_letos/test_template_leto.json" );
+var test_move_leto = 	  require( __dirname + "/test_letos/test_move_leto.json" ),
+	test_change_leto = 	  require( __dirname + "/test_letos/test_change_leto.json" ),
+	test_replace_leto =   require( __dirname + "/test_letos/test_replace_leto.json" ),
+	test_execute_leto =   require( __dirname + "/test_letos/test_execute_leto.json" ),
+	test_crawl_leto =     require( __dirname + "/test_letos/test_crawl_leto.json" ),
+	test_template_leto =  require( __dirname + "/test_letos/test_template_leto.json" ),
+	test_recursive_leto = require( __dirname + "/test_letos/test_recursive_leto.json" );
 
 // Set some fake sources for our letos, these would be set by the server otherwise
 test_move_leto.__source		 = process.cwd();
 test_change_leto.__source	 = process.cwd();
 test_replace_leto.__source 	 = process.cwd();
 test_execute_leto.__source   = process.cwd();
-test_crawl_leto.__source   = process.cwd();
+test_crawl_leto.__source     = process.cwd();
 test_template_leto.__source  = process.cwd();
+test_recursive_leto.__source = process.cwd();
 
 
 describe('spawner', function() {
@@ -67,16 +69,43 @@ describe('spawner', function() {
 		it('should build template files', function(done) {
 			var contents = {
 				testFolder: "_TEST", 
-				contents: "return 'poop';"
+				contents: "return 'poop';",
+				outputScript: "templatedScript"
 			};
 
-			// Generate a node module and call the function thgat it exports
+			// Generate a node module and call the function that it exports
 			spawner.spawn( __dirname, test_template_leto, {}, contents, function() {
 				// Call the function from the module we just generated
 				if( require(__dirname + "/_TEST/templatedScript").test() == "poop" ) {
 				    done();
 				} else {
 					done( "File not moved" );
+				}
+			});
+		});
+
+		it('should spawn templates recursively', function(done) {
+			var contents = {
+				testFolder: "_TEST", 
+				contents: "return 'doop';",
+				outputScript: "recursiveOutput"
+			};
+
+			// Spawn a template recursively
+			spawner.spawn( __dirname, test_recursive_leto, {}, contents, function() {
+				var childPath = __dirname + "/_TEST/recursiveOutput";
+
+				try {
+					var scriptTestOutput = require(childPath).test();
+				} catch(err) {
+					return done( "File didn't exist at " + childPath );
+				}
+
+				// Call the function from the module we just generated
+				if( scriptTestOutput == "doop" ) {
+				    done();
+				} else {
+					done( "Failed to do the stuff in the child template" );
 				}
 			});
 		});
@@ -189,4 +218,4 @@ describe('crawler', function() {
 
 	});	// end describe crawl()
 
-}); // end describe crawler
+}); // end describe crawler//

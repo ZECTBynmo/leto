@@ -43,12 +43,12 @@ function spawner() {
 //////////////////////////////////////////////////////////////////////////
 // Spawns a project
 spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldCloneRepo, callback ) {
+	var _this = this;
+
 	if( contents === undefined ) {
 		console.log( "!!! Spawning with undefined contents !!!" );
 		contents = {};
 	}
-
-	var _this = this;
 
 	var asyncCallQueue = [];
 
@@ -304,6 +304,26 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 		}
 	}
 
+	var getRecursiveCommand = function( step ) {
+		return function( cb ) {
+			var childTemplatePath = leto_setup.__source + "/" + step.path;
+
+			try {
+				var movingPlan = require( movingPlanPath );
+			} catch( err ) {
+				console.log( "Failed to load moving plan " + movingPlanPath );
+				cb( err );
+			}
+
+			mover.setPlan( movingPlan );
+			mover.setDest( dest );
+			//mover.setSrc( require("path").dirname(movingPlanPath) );
+			mover.move( cb );
+
+			_this.spawn( dest, leto_setup, options, contents, shouldCloneRepo, callback );
+		}
+	}
+
 	function runSpawnSeries() {
 
 		// Grab our setup procedure from the recently cloned repo
@@ -325,6 +345,9 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			  	break;
 		  	case "change":
 				asyncCallQueue.push( getChangeCommand(procedure[iStep]) );
+			  	break;
+			case "recursive":
+				asyncCallQueue.push( getRecursiveCommand(procedure[iStep]) );
 			  	break;
 
 			default:

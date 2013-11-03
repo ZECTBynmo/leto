@@ -73,7 +73,7 @@ describe('spawner', function() {
 			// Generate a node module and call the function thgat it exports
 			spawner.spawn( __dirname, test_template_leto, {}, contents, function() {
 				// Call the function from the module we just generated
-				if( require( __dirname + "/_TEST/templatedScript").test() == "poop" ) {
+				if( require(__dirname + "/_TEST/templatedScript").test() == "poop" ) {
 				    done();
 				} else {
 					done( "File not moved" );

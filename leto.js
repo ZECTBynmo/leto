@@ -6,7 +6,7 @@
 //
 // Welcome to leto! Hopefully you can find your way around the project
 // without too much difficulty. Help me make this better, so we can all
-// stop doing project bring-up work!
+// stop doing busy work!
 //
 // leto.js is the module for parsing command line arguments and dealing
 // with you pesky users ;)

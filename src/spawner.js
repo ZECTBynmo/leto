@@ -20,7 +20,6 @@ var ares = require("ares").ares,
 	mover = require("mover").createMover(),
 	changer = require("changer").createChanger(),
 	gitOps = require("./gitOperations"),
-	ares = require("ares").ares,
 	fs = require("fs-extra");
 
 
@@ -309,18 +308,23 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 			var childTemplatePath = leto_setup.__source + "/" + step.path;
 
 			try {
-				var movingPlan = require( movingPlanPath );
+				var child_setup = require( childTemplatePath );
 			} catch( err ) {
-				console.log( "Failed to load moving plan " + movingPlanPath );
-				cb( err );
+				console.log( "Failed to child template at " + childTemplatePath );
+				return cb( err );
 			}
 
-			mover.setPlan( movingPlan );
-			mover.setDest( dest );
-			//mover.setSrc( require("path").dirname(movingPlanPath) );
-			mover.move( cb );
+			var child_options = step.options || options,
+				child_dest = step.dest || dest,
+				child_contents = {};
 
-			_this.spawn( dest, leto_setup, options, contents, shouldCloneRepo, callback );
+			// Let template contents cascade down, and then override them with anything specified in the 
+			for( var iItem in contents )
+				child_contents[iItem] = contents[iItem];
+			for( var iItem in step.contents )
+				child_contents[iItem] = step.contents[iItem];
+
+			_this.spawn( child_dest, child_setup, child_options, child_contents, false, cb );
 		}
 	}
 

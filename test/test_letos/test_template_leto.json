@@ -8,7 +8,7 @@
             "templates": [
             	{ 
             		"name": "test1", 
-            		"dest": "test/~~getTestFolderName~~/templatedScript.js"
+            		"dest": "test/~~getTestFolderName~~/~~outputScript~~.js"
             	}
             ]
         }

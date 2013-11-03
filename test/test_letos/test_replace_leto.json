@@ -1,7 +1,7 @@
 {   
     "procedure": [
         {
-           "title": "Batch replace stuff!",
+            "title": "Batch replace stuff!",
             "type": "replace",
             "sourcedir": "test/test_sources",
             "keywords": {

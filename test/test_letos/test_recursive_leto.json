@@ -1,0 +1,12 @@
+{   
+    "name": "recursive",
+    "functions": "test/test_sources/test_functions.js",
+    "procedure": [
+        {
+            "title": "Template a file!",
+            "type": "recursive",
+
+            "path": "test/test_letos/test_template_leto.json"
+        }
+    ]
+}

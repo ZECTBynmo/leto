@@ -151,7 +151,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 						var thisTemplate = step.templates[iTemplate];
 
 						// Templatize the path
-						thisTemplate.dest = maker.renderTemplateToString( maker.template(thisTemplate.dest, contents) );
+						var templatedDest = maker.renderTemplateToString( maker.template(thisTemplate.dest, contents) );
 
 						var thisTemplateFileFn = function( callb ) {
 							// Retreive the empty template object
@@ -168,7 +168,7 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 							templateFiles.push( templateObj );
 
 							// Write the file out to disk
-							maker.makeFile( thisTemplate.dest, templateFiles, callb );
+							maker.makeFile( templatedDest, templateFiles, callb );
 						}
 
 						makeFileCallQueue.push( thisTemplateFileFn );
@@ -309,10 +309,16 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 
 			try {
 				var child_setup = require( childTemplatePath );
+				console.log( child_setup );
 			} catch( err ) {
 				console.log( "Failed to child template at " + childTemplatePath );
 				return cb( err );
 			}
+
+			// Make sure the child template knows where it's coming from
+			//child_setup.__source = require("path").dirname( childTemplatePath );
+			child_setup.__source = leto_setup.__source;
+			child_setup.__parent = leto_setup.__parent === undefined ? leto_setup.name : leto_setup.name + ":" + leto_setup.__parent;
 
 			var child_options = step.options || options,
 				child_dest = step.dest || dest,
@@ -334,6 +340,20 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 		var procedure = leto_setup.procedure;
 
 		for( var iStep=0; iStep<procedure.length; ++iStep ) {
+
+			// Some logging on each step to announce what's happening
+			console.log( "\n**************************************" );
+			var stepInfo = "* ";
+			if( leto_setup.__parent != undefined )		// If this is a child template, print the parent name
+				stepInfo+= leto_setup.__parent + ":";      
+			if( leto_setup.name != undefined )			// If this template has a name, print it
+				stepInfo+= leto_setup.name + ":";         
+			stepInfo+= procedure[iStep].type;			// Always print the step type
+			if( procedure[iStep].title != undefined )	// If this template has a title, print it
+				" - " + procedure[iStep].title;
+			console.log( stepInfo );			
+			console.log( "**************************************" );
+
 			switch( procedure[iStep].type ) {
 			case "replace":
 				asyncCallQueue.push( getBatchReplace(procedure[iStep]) );

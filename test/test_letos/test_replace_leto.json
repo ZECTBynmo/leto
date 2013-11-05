@@ -1,4 +1,5 @@
 {   
+    "name": "replace",
     "procedure": [
         {
             "title": "Batch replace stuff!",

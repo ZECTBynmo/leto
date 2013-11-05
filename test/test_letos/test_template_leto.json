@@ -1,4 +1,5 @@
 {   
+    "name": "template",
     "functions": "test/test_sources/test_functions.js",
     "procedure": [
         {

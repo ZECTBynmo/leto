@@ -191,7 +191,7 @@ For example, lets say we were using
 
 Some places where you can use templates
 
-    Most file paths inside of leto.json5
-    File paths inside of [mover] (https://github.com/ZECTBynmo/mover) plans
-    Anything within 'change' rules
-    Anything within leto template files (.tpl)
+- Most file paths inside of leto.json5
+- File paths inside of [mover] (https://github.com/ZECTBynmo/mover) plans
+- Anything within 'change' rules
+- Anything within leto template files (.tpl)

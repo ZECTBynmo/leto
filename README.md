@@ -14,6 +14,51 @@ npm install -g leto
 
 Leto is designed to spawn new projects from boilerplate projects, given some information from the user. In order to do this, we need to create a 'procedure' for leto to follow. The procedure and other configuration information is placed into a file called leto.json, or leto.json5, and must sit within the main project directory.
 
+## Command Line Usage
+
+Leto has some built-in systems for organizing and using templates. The first is called the holster:
+
+```
+leto show holster
+``
+
+The holster holds the currently loaded set of leto templates. Templates can be added to the holster with custom names that are convenient for command line use. If you were inside the directory of a leto template to build a node.js express server, you could add it to the holster:
+
+```
+leto arm [holster name]
+```
+
+Once you've loaded that template into the holster, you can use it from the command line:
+
+```
+leto spawn [holster name]
+```
+
+If you want to see the parameters available inside of a holster parameter so you can spawn it with full info, you can do something like:
+
+```
+leto crawl [holster name]
+```
+
+If your holster is getting too large/unmanageable you can save it into a 'rack':
+
+```
+leto save rack [rack name]
+```
+
+You can view your currently available racks:
+
+```
+leto show racks
+leto show rack [rack name]
+```
+
+You can load up one of your racks into the current holster:
+
+```
+leto load rack [rack name]
+```
+
 ### [JSON5] (https://github.com/aseemk/json5)
 
 JSON5 allows us to setup leto using a simple JSON-compatible format, and make it easier to read and write by allowing comments and things like trailing commas.

@@ -20,7 +20,7 @@ Leto has some built-in systems for organizing and using templates. The first is 
 
 ```
 leto show holster
-``
+```
 
 The holster holds the currently loaded set of leto templates. Templates can be added to the holster with custom names that are convenient for command line use. If you were inside the directory of a leto template to build a node.js express server, you could add it to the holster:
 

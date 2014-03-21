@@ -230,7 +230,92 @@ This step reads through all files within a directory, and feeds them into [maker
 
 Almost everything in leto is passed through the 'template layer' using [maker] (https://github.com/ZECTBynmo/maker). Many parts of the leto.json5 configuration are inspected for 'template strings', allowing you to expose parts of your project as variables, which will be filled with user input later.
 
-For example, lets say we were using 
+For example, lets look at one of Leto's explicit template files. Lets call this test.tpl
+
+```
+//////////////////////////////////////////////////////////////////////////
+// ~~comment~~
+function ~~functionName~~(~~arguments~~) {
+    ~~contents~~
+} // end ~~functionName~~()
+```
+
+Leto loads in the template, and extracts the variables from it. Later, variables can be resolved by somewhere else in the leto.json5 config file, or by user input.
+
+If we build a leto.json5 template using test.tpl, it might look something like this (lets say it lives in a directory called source/directory)
+
+```
+{   
+    procedure: {
+        "type": "template",
+        
+        "sourcedir": "template/directory",
+
+        "templates": [
+            {   "name": "test", 
+                "dest": "output/directory/~~parameter~~/test.js"
+            }
+        ]
+    }
+}
+```
+
+Notice that the 'dest' has a variable in it also. This will be passed through the same process. Now that we have a procedure, we could use it. Here's how we could make use of our parameters from the command line (assuming we've armed the template as "test")
+
+```
+leto spawn test --parameter TEST --comment Sweeeeeet --functionName testFunction --contents console.log('sweet');
+```
+
+This would spit out a file at output/directory/TEST/test.js that would look like:
+
+```
+//////////////////////////////////////////////////////////////////////////
+// Sweeeeeet
+function testFunction() {
+    console.log('sweet');
+} // end testFunction()
+```
+
+Notice that we never specified any value for the "arguments" variable, leaving the space empty.
+
+If we wanted to, we could define some default variables with a "defaults" block:
+
+```
+{   
+    procedure: {
+        "type": "template",
+        
+        "sourcedir": "template/directory",
+
+        "templates": [
+            {   "name": "test", 
+                "dest": "output/directory/~~parameter~~/test.js"
+            }
+        ]
+    },
+
+    defaults; {
+        parameter: "something",
+        comment: "Some Awesome Comment!",
+        functionName: "defaultName",
+        contents: "console.log('default');"
+    }
+}
+```
+
+We can also fill out template more dynamically by creating reference to a "functions" file. Here's an example functions file where we override a variable
+
+```
+exports.randomNumber = function() {
+    return Math.random(); 
+}
+```
+
+Then we can reference it from a template file like this (othertest.tpl), and we will get a unique random number every time:
+
+```
+var uniqueNumber = ~~randomNumber~~;
+```
 
 Some places where you can use templates
 

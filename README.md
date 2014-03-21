@@ -263,7 +263,7 @@ If we build a leto.json5 template using test.tpl, it might look something like t
 Notice that the 'dest' has a variable in it also. This will be passed through the same process. Now that we have a procedure, we could use it. Here's how we could make use of our parameters from the command line (assuming we've armed the template as "test")
 
 ```
-leto spawn test --parameter TEST --comment Sweeeeeet --functionName testFunction --contents console.log('sweet');
+leto spawn test --parameter TEST --comment Sweeeeeet --functionName testFunction --contents console.log('!');
 ```
 
 This would spit out a file at output/directory/TEST/test.js that would look like:

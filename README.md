@@ -232,7 +232,7 @@ Almost everything in leto is passed through the 'template layer' using [maker] (
 
 For example, lets look at one of Leto's explicit template files. Lets call this test.tpl
 
-```
+```js
 //////////////////////////////////////////////////////////////////////////
 // ~~comment~~
 function ~~functionName~~(~~arguments~~) {
@@ -244,7 +244,7 @@ Leto loads in the template, and extracts the variables from it. Later, variables
 
 If we build a leto.json5 template using test.tpl, it might look something like this (lets say it lives in a directory called source/directory)
 
-```
+```js
 {   
     procedure: {
         "type": "template",
@@ -268,7 +268,7 @@ leto spawn test --parameter TEST --comment Sweeeeeet --functionName testFunction
 
 This would spit out a file at output/directory/TEST/test.js that would look like:
 
-```
+```js
 //////////////////////////////////////////////////////////////////////////
 // Sweeeeeet
 function testFunction() {
@@ -280,7 +280,7 @@ Notice that we never specified any value for the "arguments" variable, leaving t
 
 If we wanted to, we could define some default variables with a "defaults" block:
 
-```
+```js
 {   
     procedure: {
         "type": "template",
@@ -305,7 +305,7 @@ If we wanted to, we could define some default variables with a "defaults" block:
 
 We can also fill out template more dynamically by creating reference to a "functions" file. Here's an example functions file where we override a variable
 
-```
+```js
 exports.randomNumber = function() {
     return Math.random(); 
 }
@@ -313,7 +313,7 @@ exports.randomNumber = function() {
 
 Then we can reference it from a template file like this (othertest.tpl), and we will get a unique random number every time:
 
-```
+```js
 var uniqueNumber = ~~randomNumber~~;
 ```
 

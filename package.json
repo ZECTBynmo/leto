@@ -1,6 +1,6 @@
 {
   "name": "leto",
-  "version": "0.2",
+  "version": "0.2.0",
   "author": "Mike Vegeto <michael.vegeto@gmail.com>",
   "description": "Leto - Spawn new projects from templates",
   "main": "./leto",

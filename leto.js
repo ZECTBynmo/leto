@@ -1,4 +1,4 @@
-#!/usr/bin/env nod 
+#!/usr/bin/env node
 //////////////////////////////////////////////////////////////////////////
 // leto - main script
 // Copyright Mike Vegeto, 2013. All rights reserved

@@ -251,7 +251,8 @@ spawner.prototype.spawn = function( dest, leto_setup, options, contents, shouldC
 						thisChange.args = maker.renderTemplateToString( maker.template(thisChange.args, contents) );
 					} else if( thisChange.args instanceof Array ) {
 						for( var iArg in thisChange.args ) {
-							thisChange.args[iArg] = maker.renderTemplateToString( maker.template(thisChange.args[iArg], contents) );
+							if( typeof(thisChange.args[iArg]) == "string" )
+								thisChange.args[iArg] = maker.renderTemplateToString( maker.template(thisChange.args[iArg], contents) );
 						}
 					}
 					

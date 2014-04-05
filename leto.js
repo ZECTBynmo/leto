@@ -10,12 +10,12 @@
 //
 // leto.js is the module for parsing command line arguments and dealing
 // with you pesky users ;)
-// 
+//
 // Basic structure of sources
 // ~~~~~~~~
 //
 // leto.js - parse command line args and manage other files
-//   ├── src/spawner.js - spawn new projects 
+//   ├── src/spawner.js - spawn new projects
 //   └── src/crawler.js - crawl projects for template parameters
 //
 //
@@ -35,7 +35,7 @@ var Spawner = require("./src/spawner").spawner,
 	wrench = require("wrench"),
 	needle = require("needle"),
 	spawn = require("child_process").spawn,
-	JSON5 = require('json5'),	
+	JSON5 = require('json5'),
 	ares = require("ares").ares,
 	fs = require("fs");
 
@@ -94,43 +94,43 @@ case "spawn":
 	spawnProject( actionArgs, argContents );
   	break;
 
-case "publish": 	
+case "publish":
  	publishTemplate( actionArgs );
  	break;
 
-case "crawl": 	
+case "crawl":
  	crawlTemplate( actionArgs );
  	break;
 
-case "set": 	
+case "set":
  	setVariables( actionArgs );
  	break;
 
-case "save": 	
+case "save":
  	saveConfig( actionArgs );
  	break;
 
-case "load": 	
+case "load":
  	loadConfig( actionArgs );
  	break;
 
-case "show": 	
+case "show":
  	printVariables( actionArgs );
  	break;
 
-case "arm": 	
+case "arm":
  	addHolsterTemplate( actionArgs );
  	break;
 
-case "delete": 	
+case "delete":
  	clearItem( actionArgs );
  	break;
 
-case "init": 	
+case "init":
  	initLetoConfig( actionArgs );
  	break;
 
-case "help": 	
+case "help":
  	runHelp( actionArgs );
  	break;
 
@@ -184,7 +184,7 @@ function publishTemplate( args ) {
 			if( error != undefined ) {
 				console.log( "Error while publishing: " + error );
 			}
-			
+
 			var errorMessage = body.error || body.message;
 			if( errorMessage != undefined ) {
 				console.log( "Error from server: " + errorMessage );
@@ -211,7 +211,7 @@ function spawnProject( args, contents ) {
 	};
 
 	function spawnLocalTemplate( source, localContents ) {
-		try { 
+		try {
 			var localTemplate = require( source + "/leto" );
 		} catch( err ) {
 			console.log( "Error loading local template at: " + source );
@@ -275,7 +275,7 @@ function spawnProject( args, contents ) {
 
 		// If the template name is undefined, that probably means we're trying
 		// to spawn using a registry content hash
-		if( templateName === undefined ) { 
+		if( templateName === undefined ) {
 			var fullUrl = url + "/contents/" + hashOrUser;
 
 			// We're assuming they're using a hash for some contents coming from a registry gui
@@ -322,7 +322,7 @@ function spawnProject( args, contents ) {
 
 		// Is the user trying to call out a registry template by name?
 		// 'leto spawn someremote someuser someproject'
-		// 'leto spawn http://something.else 2348723984ydf89f67dc98xfg9876dfg'	
+		// 'leto spawn http://something.else 2348723984ydf89f67dc98xfg9876dfg'
 		if( urls[args[0]] != undefined ) {
 			spawnRemoteTemplate( urls[args[0]], args[1], args[2] );
 		} else if( args[0].indexOf("http") == 0 ) {
@@ -374,22 +374,22 @@ function setVariables( args ) {
 		return console.log( "No arguments to set" );
 
 	console.log( "Setting " + args[1] );
-	
+
 	// ex: 'leto set login myname'
 	switch( args[0] ) {
-	case "login": 			
+	case "login":
 		auth.login = args[1];
 		writeSettingsFile( "auth.json", auth );
 	  	break;
-	
+
 	// ex: 'leto set password mypass'
-  	case "password": 		
+  	case "password":
 		auth.password = args[1];
 		writeSettingsFile( "auth.json", auth );
 	  	break;
 
 	// ex: 'leto set url remote http://leto.io'
-  	case "url":				
+  	case "url":
   		urls[args[1]] = args[2];
 		writeSettingsFile( "urls.json", urls );
   		break;
@@ -412,7 +412,7 @@ function printVariables( args ) {
 			strUnderline += ".";
 
 		console.log( strUnderline );
-		
+
 		for( iAttr in template )
 			console.log( "    " + iAttr + " : " + template[iAttr] );
 	}
@@ -435,22 +435,22 @@ function printVariables( args ) {
 		} else {
 			for( var iTemplate in rack ) {
 				printTemplate( rack[iTemplate], iTemplate );
-			}				
+			}
 		}
 	}
 
 	switch( args[0] ) {
-	case "holster": 	
+	case "holster":
 		if( isObjectEmpty(holster) ) {
 			console.log( "No holster items" );
 		} else {
 			for( var iItem in holster ) {
 				printTemplate( holster[iItem], iItem );
 			}
-		}		
+		}
 	  	break;
 
-  	case "urls": 
+  	case "urls":
   		if( isObjectEmpty(urls) ) {
 			console.log( "No urls" );
 		} else {
@@ -502,8 +502,8 @@ function addHolsterTemplate( args ) {
 			type = "local";
 		} catch( err ) {
 			return console.log( "Couldn't find template to arm" );
-		}		
-	} else if( args.length == 1 ) { 
+		}
+	} else if( args.length == 1 ) {
 		// 'leto arm holstername'
 		holsterItemName = args[0];
 		type = "local";
@@ -517,7 +517,7 @@ function addHolsterTemplate( args ) {
 	}
 
 	console.log( "Arming " + holsterItemName + " for convenient use" );
-	
+
 	// ex: 'leto arm local name C:/path/to/project'
 	switch( type ) {
 	case "local":
@@ -536,7 +536,7 @@ function addHolsterTemplate( args ) {
 			user: args[2],
 			template: args[3]
 		};
-		
+
 		writeSettingsFile( "holster.json", holster );
 		break;
 
@@ -713,7 +713,7 @@ function initLetoConfig( args ) {
 		} catch( err ) {
 			console.log( "Error writing file: " + err );
 		}
-	}	
+	}
 }
 
 

@@ -168,6 +168,13 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	    callback();
 	}
 
+	function getExternalsParams() {
+		// Delete contents that are being overridden
+		for( var iExternal in leto_setup.externals ) {
+			delete templateParams[iExternal];
+		}
+	}
+
 	function getFunctionsParams() {
 		try {
 			// Pull all template parameters our of the functions file
@@ -251,6 +258,10 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 		// Grab parameters from our functions file if it exists
 		if( leto_setup.functions != undefined )
 			getFunctionsParams();
+
+		// Grab parameters from our externals file if they exist
+		if( leto_setup.externals != undefined )
+			getExternalsParams();
 
 		var strGypObject = JSON.stringify( templateParams, null, 4 );
 

@@ -6,7 +6,7 @@
 /* ----------------------------------------------------------------------
 													Object Structures
 -------------------------------------------------------------------------
-	
+
 */
 //////////////////////////////////////////////////////////////////////////
 // Requires
@@ -22,14 +22,14 @@ var log = function( a ) { if(SHOW_DEBUG_PRINTS) console.log(a); };	// A log func
 
 //////////////////////////////////////////////////////////////////////////
 // Constructor
-function crawler() {	
-	var _this = this;	
-	
+function crawler() {
+	var _this = this;
+
 } // end crawler()
 
 
 //////////////////////////////////////////////////////////////////////////
-// Crawls through the leto setup and pulls out all of our 
+// Crawls through the leto setup and pulls out all of our
 crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	var _this = this;
 
@@ -54,12 +54,32 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 	    m._compile(src, filename);
 	    return m.exports;
 	}
-	
+
 	function getReplaceParams( step ) {
 		return function( cb ) {
 			for( var iKeyword in step.keywords ) {
 				var paramName = step.keywords[iKeyword];
 				templateParams[iKeyword] = oldParams[paramName] || "";
+			}
+
+			cb();
+		}
+	}
+
+	function getChangeParams( step ) {
+		return function( cb ) {
+			for( var iChange in step.changes ) {
+				for( var iArg in step.changes[iChange].args ) {
+					var argContents = step.changes[iChange].args[iArg];
+					if( typeof(argContents) != "string" )
+						continue;
+
+					var argParams = maker.getTemplateParams( argContents );
+					for( var iParam in argParams ) {
+						var pathParamName = argParams[iParam];
+						templateParams[pathParamName] = oldParams[pathParamName] || "";
+					}
+				}
 			}
 
 			cb();
@@ -82,7 +102,7 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 
 					// Load params from the template file contents
 					var templateObj = maker.getTemplate( step.templates[iTemplate].name );
-					
+
 					var fileContentsParams = maker.getTemplateParams( templateObj );
 					for( var iParam in fileContentsParams ) {
 						var fileParamName = fileContentsParams[iParam];
@@ -131,8 +151,8 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 
 	function getExecuteParams( step ) {
 
-		return function( cb ) { 
-			cb(); 
+		return function( cb ) {
+			cb();
 		}
 	}
 
@@ -156,14 +176,14 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 			console.log( "Failed to load functions file at path: " + source + "/" + leto_setup.functions );
 			console.log( err );
 		}
-		
+
 		var functionsParams = maker.getTemplateParams( strFunctionsFule );
 
 		// Add these parameters to the list
 		for( var iParam in functionsParams ) {
 			var functionsParamName = functionsParams[iParam];
 			templateParams[functionsParamName] = oldParams[functionsParamName] || "";
-		}		
+		}
 
 		// Users can override template parametrs using the exports from
 		// the overrides file, so we need to compile the file and require it,
@@ -194,7 +214,7 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 		for( var iStep=0; iStep<procedure.length; ++iStep ) {
 
 			switch( procedure[iStep].type ) {
-			case "replace":
+				case "replace":
 				asyncCallQueue.push( getReplaceParams(procedure[iStep]) );
 			  	break;
 		  	case "template":
@@ -206,8 +226,11 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 		  	case "execute":
 				asyncCallQueue.push( getExecuteParams(procedure[iStep]) );
 			  	break;
+			  case "change":
+				asyncCallQueue.push( getChangeParams(procedure[iStep]) );
+			  	break;
 
-			default:
+				default:
 			  	console.log( "Step type " + procedure[iStep].type + " not recognized" );
 			}
 		}
@@ -237,7 +260,7 @@ crawler.prototype.crawl = function( source, leto_setup, callback ) {
 		for( var iParam in templateParams )
 			console.log( iParam )
 	});
-	
+
 } // end crawl()
 
 

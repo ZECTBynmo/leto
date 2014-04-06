@@ -16,6 +16,24 @@ Leto is designed to spawn new projects from boilerplate projects, given some inf
 
 ## Command Line Usage
 
+We're going to create 'templates' and then use them from the command line. If we have a template named "server" in our holster (more later), we could do something like this:
+
+```
+leto spawn server
+```
+
+If we have another template called view that has the parameter "name", we can spawn that on top of the server, and fill out the parameters
+
+```
+leto spawn view --name AwesomeName
+```
+
+If you're curious about what parameters need to be filled out, you can 'crawl' a template
+
+```
+leto crawl view
+```
+
 Leto has some built-in systems for organizing and using templates. The first is called the holster:
 
 ```
@@ -67,13 +85,13 @@ JSON5 allows us to setup leto using a simple JSON-compatible format, and make it
 
 ```js
 {   "image": "http://secure.gravatar.com/avatar/8c758b186ab9e7358188ef30672ce84e?s=496&d=retro",
-    "github": {                                                           
-        "user": "ZECTBynmo",                                              
+    "github": {
+        "user": "ZECTBynmo",
         "repo": "someRepo"
-    }, 
+    },
 
     "defaults": {
-    	"projectName": "DefaultProjectName",    
+    	"projectName": "DefaultProjectName",
     }
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -84,8 +102,8 @@ JSON5 allows us to setup leto using a simple JSON-compatible format, and make it
         // Step 1 - Move Sources
         // ******************************
         {   "title": "Move SDK sources into place",
-            "type": "move",                     
-            "plan": "./movingPlan",             
+            "type": "move",
+            "plan": "./movingPlan",
         }, // end move sources
 
 
@@ -93,14 +111,14 @@ JSON5 allows us to setup leto using a simple JSON-compatible format, and make it
         // Step 2 - Search and Replace
         // ******************************
         {   "title": "Change names and paths",
-            "type": "replace",                  
-                                                
-            "keywords": {       
-                "projectName": "MyProject",     
-            },                                  
-                
-            "extensions": [                     
-                ".js",                          
+            "type": "replace",
+
+            "keywords": {
+                "projectName": "MyProject",
+            },
+
+            "extensions": [
+                ".js",
                 ".md",
                 ".json"
             ]
@@ -143,15 +161,15 @@ This step reads through all files within a directory, and feeds them into [maker
 	type: "replace",
 
 	// The names of the items we want to flag for replacement
-	"keywords": {       
-        "whatIsTheKeyword": "TheKeyword",     
-        "what is THIS keyword?": "TheOtherKeyword!",    
+	"keywords": {
+        "whatIsTheKeyword": "TheKeyword",
+        "what is THIS keyword?": "TheOtherKeyword!",
         "whatIsThisPath": "../../../../../../test"
     },
 
     // The file extensions that we want to process (we process everything if not present)
-    "extensions": [                     
-        ".js",                          
+    "extensions": [
+        ".js",
         ".md",
         ".json"
     ]
@@ -184,7 +202,7 @@ This step reads through all files within a directory, and feeds them into [maker
     // A list of the template files we want to generate, and their destinations
     // Destinations can be templatized
     "templates": [
-    	{	"name": "test1", 
+    	{	"name": "test1",
     		"dest": "test/~~testFolderName~~/templatedScript.js"
     	}
     ]
@@ -195,7 +213,7 @@ This step reads through all files within a directory, and feeds them into [maker
 
 ```js
 {	"title": "Change some stuff",
-    "type": "change", 
+    "type": "change",
 
     // The relative path to our rule set (a node.js module)
     "ruleset": "test/test_rulesets/testRules.js",
@@ -245,14 +263,14 @@ Leto loads in the template, and extracts the variables from it. Later, variables
 If we build a leto.json5 template using test.tpl, it might look something like this (lets say it lives in a directory called source/directory)
 
 ```js
-{   
+{
     procedure: {
         "type": "template",
-        
+
         "sourcedir": "template/directory",
 
         "templates": [
-            {   "name": "test", 
+            {   "name": "test",
                 "dest": "output/directory/~~parameter~~/test.js"
             }
         ]
@@ -281,14 +299,14 @@ Notice that we never specified any value for the "arguments" variable, leaving t
 If we wanted to, we could define some default variables with a "defaults" block:
 
 ```js
-{   
+{
     procedure: {
         "type": "template",
-        
+
         "sourcedir": "template/directory",
 
         "templates": [
-            {   "name": "test", 
+            {   "name": "test",
                 "dest": "output/directory/~~parameter~~/test.js"
             }
         ]
@@ -303,11 +321,22 @@ If we wanted to, we could define some default variables with a "defaults" block:
 }
 ```
 
-We can also fill out template more dynamically by creating reference to a "functions" file. Here's an example functions file where we override a variable
+We can also fill out template more dynamically by creating reference to a "functions" file. Here's an example functions file where we override a variable (NOTE: Templates inside of functions files WILL work)
+
+```js
+{
+    procedure: {
+        ...your procedure...
+    },
+
+    functions: "leto/overrides.js"
+}
+```
+
 
 ```js
 exports.randomNumber = function() {
-    return Math.random(); 
+    return Math.random();
 }
 ```
 
@@ -315,6 +344,21 @@ Then we can reference it from a template file like this (othertest.tpl), and we 
 
 ```js
 var uniqueNumber = ~~randomNumber~~;
+```
+
+If you need to override a template parameter with the contents of a file, rather than by calling a function, you can setup some "externals" (NOTE: Templates inside of externals files WILL work):
+
+```js
+{
+    procedure: {
+        ...your procedure...
+    },
+
+    externals: {
+        "first_param_name": "first/file/to/load.txt",
+        "second_param_name": "second/file/to/load.csv",
+    }
+}
 ```
 
 Some places where you can use templates

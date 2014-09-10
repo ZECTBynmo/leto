@@ -4,6 +4,8 @@ Leto is a general purpose text wrangler that can help automate tasks in any lang
 
 Do you find yourself writing the same code over and over? Do you waste time running search replace, looking up command line arguments, or otherwise doing non-dev work? Leto is built for you! Run complicated procedures in seconds, and automate away all your busy work.
 
+![alt tag](https://nodei.co/npm-dl/leto.png)
+
 ## Installation
 
 ```

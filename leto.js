@@ -226,6 +226,44 @@ function spawnProject( args, contents ) {
 		});
 	}
 
+    function spawnGithubTemplate( user, repo ) {
+        var oldCWD = process.cwd();
+
+        // Create temp directory for the clone of the template repo
+        if( !fs.existsSync(process.cwd() + '/__leto_template_clone/') ) {
+            console.log( "Making directory for clone of template repo" )
+            fs.mkdirSync( process.cwd() + '/__leto_template_clone/' );
+        }
+
+        process.chdir( process.cwd() + '/__leto_template_clone/' );
+        
+        var gitClone = spawn( 'git', ['clone', "git@github.com:" + user + "/" + repo] );
+
+        gitClone.stdout.on('data', function (data) {
+            console.log( data + "" );
+        });
+
+        gitClone.stderr.on('data', function (data) {
+            console.log( data + "" );
+        });
+
+        gitClone.on('close', function (code) {
+            if( code == 0 ) {
+                var template = require( process.cwd() + "/" + repo + "/leto.json5" );
+                template.__source = process.cwd() + "/" + repo;
+
+                process.chdir( oldCWD );
+
+                spawner.spawn( dest, template, options, contents, function() {
+                    console.log( "Finished spawning" );
+                });
+            } else {
+                console.log( "git clone exited with code: " + code );
+            }
+        });
+
+    }
+
 	function spawnRemoteTemplate( url, hashOrUser, templateName ) {
 
 		function cloneAndSpawn(template, spawnContents) {
@@ -321,10 +359,13 @@ function spawnProject( args, contents ) {
 	} else if( args.length > 1 ) {
 
 		// Is the user trying to call out a registry template by name?
-		// 'leto spawn someremote someuser someproject'
+		// 'leto spawn github someuser someproject'
+		// 'leto spawn http://some.remote someuser someproject'
 		// 'leto spawn http://something.else 2348723984ydf89f67dc98xfg9876dfg'
 		if( urls[args[0]] != undefined ) {
 			spawnRemoteTemplate( urls[args[0]], args[1], args[2] );
+        } else if( args[0].toLowerCase() == 'github' ) {
+            spawnGithubTemplate( args[1], args[2] );
 		} else if( args[0].indexOf("http") == 0 ) {
 			spawnRemoteTemplate( args[0], args[1], args[2] );
 		} else {
